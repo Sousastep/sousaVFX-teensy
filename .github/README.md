@@ -8,16 +8,18 @@
 
 # :studio_microphone: Introduction
 
-SousaFX-rnbo ports [SousaFX](https://sousastep.github.io/SousaFX-docs/index.html) from Max to [RNBO](https://rnbo.cycling74.com/) so it can run on a microcontroller instead of a mac.
+The [teensy](https://www.pjrc.com/store/teensy40.html) receives serial data via USB and uses the [octows2811](https://www.pjrc.com/store/octo28_adaptor.html) adapter to send rgb data to the LEDs.
+
+Serial data can be sent from either a mac running [sousaVFX](https://doc.sousastep.quest/content/sousavfx.html), or a raspberry pi running [sousaFX-rnbo](https://github.com/Sousastep/SousaFX-rnbo).
+
+The teensy auto-detects whether it's connected to a mac or rpi by measuring the frame size of the incoming serial data.
+
+Each frame's start marker is 254, and end marker is 255. SousaVFX sends hundreds of rgb values in each frame. sousaFX-rnbo sends three parameter values in each frame, and relies on the teensy to generate visuals.
 
 <a href="#control_knobs-hardware">![rainbow](./media/rainbow.png)</a>
 
 # :control_knobs: Hardware
 
-![rainbow](./media/layout.webp)
+https://edu.sousastep.quest/content/tutorials/LED-sousa-bell.html#materials
 
-<a href="#scroll-scripts">![rainbow](./media/rainbow.png)</a>
-
-# :scroll: Scripts
-
-The python scripts for converting gamepad to osc, and osc to serial, [are available in the sousaFX-rpi-scripts repository](https://github.com/Sousastep/sousaFX-rpi-scripts).
+<a href="#">![rainbow](./media/rainbow.png)</a>
