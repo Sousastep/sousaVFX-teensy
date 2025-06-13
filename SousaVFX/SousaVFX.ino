@@ -24,7 +24,7 @@ const int config = WS2811_GRB | WS2811_800kHz; // why's this differ from #define
 const int ledsPerStrip = 26;
 const int numStrips = 8;
 const int numChannels = ledsPerStrip * numStrips * 3;
-const int maxDataLength = 610; //failsafe incase end marker doesn't appear or something
+const int maxDataLength = 700; //failsafe incase end marker doesn't appear or something
 const int electretMicEnabled = 0;
 
 // Declare variables
@@ -75,7 +75,7 @@ void setup()
 {
   random16_set_seed(analogRead(A0));
 
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   // initialize all the readings to 0:
   for (int thisReading = 0; thisReading < numReadings; thisReading++) {
