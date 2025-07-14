@@ -8,7 +8,7 @@ FASTLED_USING_NAMESPACE
 
 #include "coordinate_maps.h"
 
-#define FRAMES_PER_SECOND 120
+#define FRAMES_PER_SECOND 240
 const int frameInterval = ((1000 / FRAMES_PER_SECOND) * 1);
 const int micInterval = (100);
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
@@ -16,7 +16,7 @@ const int micInterval = (100);
 uint8_t offset = 0; // rotating "base color" used by many of the patterns
 uint8_t speed = 12;
 
-boolean autoplay = true;
+boolean autoplay = false;
 uint8_t autoplaySeconds = 45;
 
 // Define constants
