@@ -8,7 +8,7 @@ FASTLED_USING_NAMESPACE
 
 #include "coordinate_maps.h"
 
-#define FRAMES_PER_SECOND 240
+#define FRAMES_PER_SECOND 120
 const int frameInterval = ((1000 / FRAMES_PER_SECOND) * 1);
 const int micInterval = (100);
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
@@ -67,7 +67,7 @@ int sensorValue = 0;  // value read from the pot
 
 // Detect which device is connected
 enum DeviceType { UNKNOWN, RASPBERRY_PI, MAC_MAX };
-static DeviceType currentDevice = UNKNOWN;
+static DeviceType currentDevice = RASPBERRY_PI;
 static int frameCount = 0;
 static int frameLengths[10]; // Store recent frame lengths for analysis
 
@@ -779,6 +779,7 @@ void loop() {
     // circular mask while tuba's wobbling
     if (vfxtype == 0) {
       for (int i = 0; i < NUM_LEDS; i++) {
+        leds[i] = leds[i].scale8(150);
         if (radii[i] > vfx_env)
           leds[i] = leds[i].scale8(0);
       }
@@ -787,6 +788,7 @@ void loop() {
     // simple dim while tuba's soloing
     if (vfxtype == 1) {
       for (int i = 0; i < NUM_LEDS; i++) {
+        leds[i] = leds[i].scale8(150);
         leds[i] = leds[i].scale8((float(vfx_env)*0.9)+25);
       }
     }
@@ -871,7 +873,7 @@ void detectDeviceType() {
 
 void test() {
   for (int i = 0; i < ledsPerStrip * numStrips ; i++) {
-    octo.setPixel(i, random(0, 253), random(0, 253), random(0, 253));
+    octo.setPixel(i, random(0, 128), random(0, 128), random(0, 128));
     octo.show();
     delay(20);
     octo.setPixel(i, 0, 0, 0);
