@@ -3,14 +3,15 @@
 		"fileversion" : 1,
 		"appversion" : 		{
 			"major" : 9,
-			"minor" : 0,
-			"revision" : 7,
+			"minor" : 1,
+			"revision" : 0,
 			"architecture" : "x64",
 			"modernui" : 1
 		}
 ,
 		"classnamespace" : "box",
-		"rect" : [ 728.0, 191.0, 1686.0, 1053.0 ],
+		"rect" : [ 842.0, 114.0, 499.0, 379.0 ],
+		"openinpresentation" : 1,
 		"gridsize" : [ 15.0, 15.0 ],
 		"boxes" : [ 			{
 				"box" : 				{
@@ -20,7 +21,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 511.0, 683.0, 114.0, 22.0 ],
-					"text" : "254 0 0 0 255"
+					"text" : "254 253 22 0 255"
 				}
 
 			}
@@ -43,7 +44,9 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "bang" ],
-					"patching_rect" : [ 69.0, 318.0, 184.0, 68.0 ]
+					"patching_rect" : [ 69.0, 318.0, 184.0, 68.0 ],
+					"presentation" : 1,
+					"presentation_rect" : [ 43.0, 141.0, 303.0, 189.0 ]
 				}
 
 			}
@@ -463,8 +466,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "float" ],
-					"patching_rect" : [ 487.0, 266.0, 81.0, 22.0 ],
-					"text" : "snapshot~ 10"
+					"patching_rect" : [ 487.0, 266.0, 118.0, 22.0 ],
+					"text" : "snapshot~ 8.333333"
 				}
 
 			}
@@ -611,7 +614,7 @@
 					"parameter_enable" : 1,
 					"patching_rect" : [ 992.0, 413.0, 199.0, 32.0 ],
 					"presentation" : 1,
-					"presentation_rect" : [ 1229.0, 496.0, 243.0, 26.0 ],
+					"presentation_rect" : [ 43.0, 113.0, 146.0, 26.0 ],
 					"saved_attribute_attributes" : 					{
 						"valueof" : 						{
 							"parameter_enum" : [ "1", "2" ],
@@ -735,7 +738,7 @@
 					"parameter_enable" : 0,
 					"patching_rect" : [ 959.0, 259.0, 146.0, 22.0 ],
 					"presentation" : 1,
-					"presentation_rect" : [ 661.0, 630.0, 146.0, 22.0 ]
+					"presentation_rect" : [ 43.0, 86.0, 146.0, 22.0 ]
 				}
 
 			}
@@ -749,7 +752,7 @@
 					"parameter_enable" : 0,
 					"patching_rect" : [ 910.0, 150.0, 36.0, 36.0 ],
 					"presentation" : 1,
-					"presentation_rect" : [ 612.0, 454.0, 36.0, 36.0 ]
+					"presentation_rect" : [ 43.0, 43.0, 36.0, 36.0 ]
 				}
 
 			}
