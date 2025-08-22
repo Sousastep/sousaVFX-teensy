@@ -8,7 +8,7 @@ FASTLED_USING_NAMESPACE
 
 #include "coordinate_maps.h"
 
-#define FRAMES_PER_SECOND 120
+#define FRAMES_PER_SECOND 160
 const int frameInterval = ((1000 / FRAMES_PER_SECOND) * 1);
 const int micInterval = (100);
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
@@ -613,7 +613,6 @@ const CRGBPalette16 palettes[] = {
   Coral_reef_gp,
   es_ocean_breeze_068_gp,
   es_pinksplash_07_gp,
-  es_vintage_01_gp,
   departure_gp,
   es_landscape_64_gp,
   es_landscape_33_gp,
@@ -622,7 +621,6 @@ const CRGBPalette16 palettes[] = {
   gr64_hult_gp,
   GMT_drywet_gp,
   ib_jul01_gp,
-  es_vintage_57_gp,
   ib15_gp,
   Fuschia_7_gp,
   es_emerald_dragon_08_gp,
@@ -632,9 +630,6 @@ const CRGBPalette16 palettes[] = {
   Magenta_Evening_gp,
   Pink_Purple_gp,
   es_autumn_19_gp,
-  BlacK_Blue_Magenta_White_gp,
-  BlacK_Magenta_Red_gp,
-  BlacK_Red_Magenta_Yellow_gp,
   Blue_Cyan_Yellow_gp };
 
 
