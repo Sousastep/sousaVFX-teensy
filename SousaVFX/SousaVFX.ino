@@ -782,9 +782,10 @@ void loop() {
 
     // simple dim while tuba's soloing
     if (vfxtype == 1) {
+      uint8_t combinedScale = (150 * ((float(vfx_env)*0.9)+25)) / 255;
+      
       for (int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = leds[i].scale8(150);
-        leds[i] = leds[i].scale8((float(vfx_env)*0.9)+25);
+        leds[i] = leds[i].scale8(combinedScale);
       }
     }
 
