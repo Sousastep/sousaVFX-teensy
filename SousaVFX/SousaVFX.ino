@@ -759,19 +759,21 @@ void loop() {
     if (vfxtype == 1) {
       maskbrightnesscurve = ((float(vfx_env/253)*6)+1);
     } else { 
-      maskbrightnesscurve = 0;
+      maskbrightnesscurve = 3.0f;
     }
 
     // moire patterns emerge with high numbers of divisions
     // inspired by mojovideotech's pinwheel shader https://editor.isf.video/shaders/5e7a7fe07c113618206de624
     float timeOffset = currentMillis / 120.0f;
-    float divisions = (abs(fmod(currentMillis / 12000.0f, 110.0f) - 55.0f) + 1.0f);
+    float divisions = (((abs(fmod(currentMillis / 12000.0f, 68.0f) - 34.0f)) * -1.0f) + 35.0f);
     float angleSize = 360.0f / divisions;
     float invAngleSize = 1.0f / angleSize;
 
     for (int i = 0; i < NUM_LEDS; i++) {
-        float angleDiff = fmod(angleshirez[i] - timeOffset, 360.0f);
-        int dimmermask = int(angleDiff * invAngleSize * 255.0f);
+        float angleDiff = fmod(angleshirez[i] - timeOffset, 360.0f); // rotation
+        float normalizedPos = angleDiff * invAngleSize;
+        float triangular = 1.0f - abs(normalizedPos - 0.5f) * 2.0f;
+        int dimmermask = int(triangular * 255.0f);     // fade
         leds[i] = leds[i].scale8(applyExponentialCurve(ease8InQuad(dimmermask), maskbrightnesscurve));
     }
 
@@ -781,14 +783,14 @@ void loop() {
             if (radii[i] > vfx_env) {
                 leds[i] = CRGB::Black;
             } else {
-                leds[i] = leds[i].scale8(150);
+                leds[i] = leds[i].scale8(170);
             }
         }
     }
 
     // simple dim while tuba's soloing
     if (vfxtype == 1) {
-      uint8_t combinedScale = (150 * ((float(vfx_env)*0.9)+25)) / 255;
+      uint8_t combinedScale = (170 * ((float(vfx_env)*0.9)+25)) / 255;
       
       for (int i = 0; i < NUM_LEDS; i++) {
         leds[i] = leds[i].scale8(combinedScale);
