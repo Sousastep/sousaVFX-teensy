@@ -40,6 +40,8 @@ unsigned long previousMillisLED = 0;  // will store last time LED was updated
 unsigned long previousPatternMillis = 0;
 unsigned long previousPaletteMillis = 0;
 int vfx_env = 255;
+int pinwheelDivisions = 1;
+int fadeParam = 1;
 int vfxtype = 0;
 float maskbrightnesscurve = 0;
 
@@ -669,6 +671,14 @@ uint8_t applyExponentialCurve(uint8_t value, float curve) {
   return uint8_t(curved * 255.0f);
 }
 
+double clamp(double d, double min, double max) {
+  const double t = d < min ? min : d;
+  return t > max ? max : t;
+}
+
+float fmap(float x, float in_min, float in_max, float out_min, float out_max) {
+    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
 
 void loop() {
 
@@ -680,6 +690,8 @@ void loop() {
       vfx_env = receivedChars[0];
       currentPaletteIndex = receivedChars[1];
       vfxtype = receivedChars[2];
+      pinwheelDivisions = receivedChars[3];
+      fadeParam = receivedChars[4];
 
       if (previousPalette != currentPaletteIndex) {
       currentPalette = palettes[currentPaletteIndex];
@@ -764,17 +776,21 @@ void loop() {
 
     // moire patterns emerge with high numbers of divisions
     // inspired by mojovideotech's pinwheel shader https://editor.isf.video/shaders/5e7a7fe07c113618206de624
-    float timeOffset = currentMillis / 120.0f;
-    float divisions = (((abs(fmod(currentMillis / 12000.0f, 68.0f) - 34.0f)) * -1.0f) + 35.0f);
-    float angleSize = 360.0f / divisions;
+    const float TOTAL_ANGLE = 360.0f;
+    const float TIME_DIVISOR = 1.0f / 120.0f; // Could be 1.0f / 120.0f
+    float angleSize = TOTAL_ANGLE / pinwheelDivisions;
     float invAngleSize = 1.0f / angleSize;
+    float timeOffset = fmod(currentMillis * TIME_DIVISOR, angleSize);
+    float fadeParamNorm = fmap(fadeParam, 0.0f, 255.0f, 0.0f, 1.0f );
 
     for (int i = 0; i < NUM_LEDS; i++) {
-        float angleDiff = fmod(angleshirez[i] - timeOffset, 360.0f); // rotation
-        float normalizedPos = angleDiff * invAngleSize;
-        float triangular = 1.0f - abs(normalizedPos - 0.5f) * 2.0f;
-        int dimmermask = int(triangular * 255.0f);     // fade
-        leds[i] = leds[i].scale8(applyExponentialCurve(ease8InQuad(dimmermask), maskbrightnesscurve));
+      // float fadeAdjust = fmap(clamp((radii[i] + fadeParam), 0.0f , 255.0f), 0.0f, 255.0f, 12.0f, 0.0f ); // fadeParam
+      float angleSum = angleshirez[i] + timeOffset;
+      float angleDiff = fmod(angleSum, angleSize);
+      float normalizedPos = angleDiff * invAngleSize;
+      int dimmermask = (normalizedPos < fadeParamNorm) ? 0 : 255;
+      // int dimmermask = (clamp(((normalizedPos * (1 + fadeAdjust)) - fadeAdjust), 0, 1) < 0.5f) ? 0 : 255;
+      leds[i] = leds[i].scale8(dimmermask);
     }
 
     // circular mask while tuba's wobbling
