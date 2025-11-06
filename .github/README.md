@@ -1,6 +1,6 @@
 <div align="center">
 
-[![Linktree](https://img.shields.io/badge/linktree-1de9b6?logo=linktree&style=flat-square&color=029900)](https://www.sousastep.quest/links/) [![Discord](https://img.shields.io/discord/1044699978993504368?label=Discord&logo=discord&logoColor=5865F2&style=flat-square&color=5865F2)](https://discord.gg/feBwTZt84d) [![Twitch Status](https://img.shields.io/twitch/status/sousastep?label=Twitch&logo=twitch&style=flat-square)](https://www.twitch.tv/sousastep) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square&color=029900)](https://makeapullrequest.com) 
+[![Linktree](https://img.shields.io/badge/linktree-1de9b6?logo=linktree&style=flat-square&color=029900)](https://www.sousastep.quest/links/) [![Discord](https://img.shields.io/discord/1044699978993504368?label=Discord&logo=discord&logoColor=5865F2&style=flat-square&color=5865F2)](https://discord.gg/feBwTZt84d) [![Twitch Status](https://img.shields.io/twitch/status/sousastep?label=Twitch&logo=twitch&style=flat-square)](https://www.twitch.tv/sousastep)
 
 </div>
 
@@ -10,7 +10,7 @@
 
 The [teensy](https://www.pjrc.com/store/teensy40.html) receives serial data via USB and uses the [octows2811](https://www.pjrc.com/store/octo28_adaptor.html) adapter to send rgb data to the LEDs.
 
-Serial data can be sent from either a mac running [sousaVFX](https://doc.sousastep.quest/content/sousavfx.html), or a raspberry pi running [sousaFX-rnbo](https://github.com/Sousastep/SousaFX-rnbo).
+Serial data can be sent from either a mac running [sousaVFX](https://doc.sousastep.quest/content/sousavfx.html) or SousaVFX-maxteensy.maxproj (in this repo), or a raspberry pi running [sousaFX-rnbo](https://github.com/Sousastep/SousaFX-rnbo).
 
 The teensy auto-detects whether it's connected to a mac or rpi by measuring the frame size of the incoming serial data.
 
