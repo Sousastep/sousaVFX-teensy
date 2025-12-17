@@ -49,10 +49,10 @@ struct VFXParams {
     uint8_t divisionWidth = 126;
     uint8_t divisionCurve = 126;
     uint8_t rotation = 0;
-    uint8_t fade = 253;
+    uint8_t fadeIn = 253;
+    uint8_t fadeOut = 253;
+    uint8_t peakPos = 126;
 } params;
-
-float maskbrightnesscurve = 0;
 
 OctoWS2811 octo(ledsPerStrip, displayMemory, drawingMemory, config);
 
@@ -271,8 +271,13 @@ void loop() {
     float angleRotationAmt = angleSize * (params.rotation * paramNorm) ;
     float divisionWidthNorm = (params.divisionWidth * paramNorm) ;
     float divisionCurve = (((params.divisionCurve * paramNorm) * 6.0f) - 3.0f) / params.pinwheelDivisions ;
-    float fadeNorm = params.fade * paramNorm ;
-    float slope = (fadeNorm - 1.0f) / (divisionWidthNorm - 1.0f);
+    
+    float fadeInNorm = params.fadeIn * paramNorm ;
+    float fadeOutNorm = params.fadeOut * paramNorm ;
+    float peakPosNorm = (params.peakPos * paramNorm) * divisionWidthNorm;
+
+    float slopeIn = (fadeInNorm - 1.0f) / (0.0f - peakPosNorm);
+    float slopeOut = (1.0f - fadeOutNorm) / (peakPosNorm - divisionWidthNorm);
 
     for (int i = 0; i < NUM_LEDS; i++) {
       // int dimmermask = 255;
@@ -288,9 +293,14 @@ void loop() {
       // int dimmermask = (normalizedPos > divisionWidthNorm) ? (std::clamp( (int)( ( ( ( ( fadeNorm - 1.0f ) / ( divisionWidthNorm - 1.0f ) ) * ( normalizedPos - 1.0f) ) + 1.0f) * 255.0f), 0, 255) ) : 0;
 
       int dimmermask = 0;
-      if (normalizedPos > divisionWidthNorm) {
-      float fadeFactor = slope * (normalizedPos - 1.0f) + 1.0f;
-      dimmermask = std::clamp(static_cast<int>(fadeFactor * 255.0f), 0, 255);
+      if (normalizedPos < divisionWidthNorm) {
+        float fadeFactor = 1.0f;
+        if (normalizedPos < peakPosNorm) {
+          fadeFactor = slopeIn * (normalizedPos - peakPosNorm) + 1.0f;
+        } else {
+          fadeFactor = slopeOut * (normalizedPos - peakPosNorm) + 1.0f;
+        }
+        dimmermask = std::clamp(static_cast<int>(fadeFactor * 255.0f), 0, 255);
       }
 
       leds[i] = leds[i].scale8(dimmermask);
