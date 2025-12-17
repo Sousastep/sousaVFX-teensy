@@ -48,6 +48,7 @@ int pinwheelDivisions = 3;
 int divisionWidth = 126;
 int divisionCurveParam = 126;
 int rotationParam = 0;
+int fadeParam = 253;
 
 float maskbrightnesscurve = 0;
 
@@ -168,11 +169,6 @@ uint8_t applyExponentialCurve(uint8_t value, float curve) {
   return uint8_t(curved * 255.0f);
 }
 
-double clamp(double d, double min, double max) {
-  const double t = d < min ? min : d;
-  return t > max ? max : t;
-}
-
 float fmap(float x, float in_min, float in_max, float out_min, float out_max) {
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
@@ -190,6 +186,7 @@ void loop() {
       divisionWidth = receivedChars[4];
       divisionCurveParam = receivedChars[5];
       rotationParam = receivedChars[6];
+      fadeParam = receivedChars[7];
 
       if (previousPalette != currentPaletteIndex) {
       currentPalette = palettes[currentPaletteIndex];
@@ -269,29 +266,44 @@ void loop() {
 
     // moire patterns emerge with high numbers of divisions
     // inspired by mojovideotech's pinwheel shader https://editor.isf.video/shaders/5e7a7fe07c113618206de624
-    const float TOTAL_ANGLE = 360.0f;
-    const float TIME_DIVISOR = 1.0f / 120.0f;
-    float angleSize = TOTAL_ANGLE / pinwheelDivisions;
-    float invAngleSize = 1.0f / angleSize;
-    // float angleRotationAmt = fmod(currentMillis * TIME_DIVISOR, angleSize); // use this line when only teensy with no rpi or mac
-    float angleRotationAmt = angleSize * fmap(rotationParam, 0.0f, 253.0f, 0.0f, 1.0f );
-    float divisionWidthNorm = fmap(divisionWidth, 0.0f, 253.0f, 1.0f, 0.0f );
-    float divisionCurve = fmap(divisionCurveParam, 0.0f, 253.0f, -3.0f, 3.0f) / pinwheelDivisions;
+    const float TOTAL_ANGLE = 360.0f ;
+    const float TIME_DIVISOR = 1.0f / 120.0f ;
+    const float paramNorm = 1.0f / 253.0f ;
+    float angleSize = TOTAL_ANGLE / pinwheelDivisions ;
+    float angleSizeInv = 1.0f / angleSize ;
+    // float angleRotationAmt = fmod(currentMillis * TIME_DIVISOR, angleSize);                  // use this line when only teensy with no rpi or mac
+    float angleRotationAmt = angleSize * (rotationParam * paramNorm) ;
+    float divisionWidthNorm = (divisionWidth * paramNorm) ;
+    float divisionCurve = (((divisionCurveParam * paramNorm) * 6.0f) - 3.0f) / pinwheelDivisions ;
+    float fadeNorm = fadeParam * paramNorm ;
+    float slope = (fadeNorm - 1.0f) / (divisionWidthNorm - 1.0f);
 
     for (int i = 0; i < NUM_LEDS; i++) {
-      // float fadeAdjust = fmap(clamp((radii[i] + fadeParam), 0.0f , 255.0f), 0.0f, 255.0f, 12.0f, 0.0f ); // fadeParam
-      float angleOffset = angleshirez[i] + angleRotationAmt + (radiihirez[i] * divisionCurve) + 360.0f;
-      float angleDiff = fmod(angleOffset, angleSize);
-      float normalizedPos = angleDiff * invAngleSize;
-      int dimmermask = (normalizedPos < divisionWidthNorm) ? 0 : 255;
-      // int dimmermask = (clamp(((normalizedPos * (1 + fadeAdjust)) - fadeAdjust), 0, 1) < 0.5f) ? 0 : 255;
+      // int dimmermask = 255;
+      /* these three lines handle circular rotation and curve */
+      float angleOffset = angleshirez[i] + angleRotationAmt + (radiihirez[i] * divisionCurve);
+      float angleDiff = fmod((angleOffset + 360.0f), angleSize);                                // +360 because fmod can't handle negative numbers
+      float normalizedPos = angleDiff * angleSizeInv;
+
+      // int dimmermask = (normalizedPos > divisionWidthNorm) ? 0 : 255;                        // just on or off
+      // int dimmermask = normalizedPos * 255.0f;                                               // simplest fade
+
+      /* calculate mask by plugging position, fade, and width into a piecewise linear equation w/ point-slope form using (1,1) as the fixed point */
+      // int dimmermask = (normalizedPos > divisionWidthNorm) ? (std::clamp( (int)( ( ( ( ( fadeNorm - 1.0f ) / ( divisionWidthNorm - 1.0f ) ) * ( normalizedPos - 1.0f) ) + 1.0f) * 255.0f), 0, 255) ) : 0;
+
+      int dimmermask = 0;
+      if (normalizedPos > divisionWidthNorm) {
+      float fadeFactor = slope * (normalizedPos - 1.0f) + 1.0f;
+      dimmermask = std::clamp(static_cast<int>(fadeFactor * 255.0f), 0, 255);
+      }
+
       leds[i] = leds[i].scale8(dimmermask);
 
-      if (radii[i] > radiusCutoffParam) {
+      if (radiihirez[i] > fmap(radiusCutoffParam, 0.0f, 253.0f, 0.0f, 255.0f ) ) {
         leds[i] = CRGB::Black;
       }
       
-      leds[i] = leds[i].scale8(fmap(brightnessParam, 0.0f, 253.0f, 0.0f, 200.0f ));
+      leds[i] = leds[i].scale8(fmap(brightnessParam, 0.0f, 253.0f, 0.0f, 200.0f ));             // kinda feel like the LEDs burn out more quickly if they're as bright as possible
     }
 
     // Transfer the data from FastLED's format to OctoWS2811
