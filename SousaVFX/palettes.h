@@ -1,8 +1,20 @@
 
-DEFINE_GRADIENT_PALETTE( sousa1 ) {
+DEFINE_GRADIENT_PALETTE( RGBtest ) {
     0, 255,   0,   0,
   127,   0, 255,   0,
   255,   0,   0,  255};
+
+DEFINE_GRADIENT_PALETTE( Red ) {
+    0  , 255,   0,   0,
+    255, 255,   0,   0};
+
+DEFINE_GRADIENT_PALETTE( Gre ) {
+    0  , 0,   255,   0,
+    255, 0,   255,   0};
+
+DEFINE_GRADIENT_PALETTE( Blu ) {
+    0  , 0,   0,   255,
+    255, 0,   0,   255};
 
 // From ColorWavesWithPalettes by Mark Kriegsman: https://gist.github.com/kriegsman/8281905786e8b2632aeb
 
@@ -485,7 +497,10 @@ DEFINE_GRADIENT_PALETTE( Blue_Cyan_Yellow_gp ) {
 
 
 const CRGBPalette16 palettes[] = {
-  sousa1,
+  RGBtest,
+  Red,
+  Gre,
+  Blu,
   Sunset_Real_gp,
   es_rivendell_15_gp,
   es_ocean_breeze_036_gp,
