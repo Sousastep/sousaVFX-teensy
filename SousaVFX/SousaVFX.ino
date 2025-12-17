@@ -41,14 +41,18 @@ unsigned long previousPatternMillis = 0;
 unsigned long previousPaletteMillis = 0;
 int vfx_env = 255;
 
-int brightnessParam = 80;
-int radiusCutoffParam = 253;
-uint8_t currentPaletteIndex = 0;
-int pinwheelDivisions = 3;
-int divisionWidth = 126;
-int divisionCurveParam = 126;
-int rotationParam = 0;
-int fadeParam = 253;
+struct VFXParams {
+    uint8_t brightness = 80;
+    uint8_t radiusCutoff = 253;
+    uint8_t currentPaletteIndex = 0;
+    uint8_t pinwheelDivisions = 3;
+    uint8_t divisionWidth = 126;
+    uint8_t divisionCurve = 126;
+    uint8_t rotation = 0;
+    uint8_t fade = 253;
+};
+
+VFXParams params;
 
 float maskbrightnesscurve = 0;
 
@@ -137,7 +141,7 @@ CRGBPalette16 IceColors_p = CRGBPalette16(CRGB::Black, CRGB::Blue, CRGB::Aqua, C
 const uint8_t paletteCount = ARRAY_SIZE(palettes);
 
 uint8_t previousPalette = 0;
-CRGBPalette16 currentPalette = palettes[currentPaletteIndex];
+CRGBPalette16 currentPalette = palettes[params.currentPaletteIndex];
 
 boolean autoplayPalettes = false;
 uint8_t autoplayPaletteSeconds = autoplaySeconds * patternCount;
@@ -179,18 +183,12 @@ void loop() {
   if (!electretMicEnabled) {    // if electret mic connected directly to teensy is disabled, read from serial input
     recvWithStartEndMarkers();  // check to see if we have received any new commands
     if (newData && currentDevice == RASPBERRY_PI) {
-      brightnessParam = receivedChars[0];
-      radiusCutoffParam = receivedChars[1];
-      currentPaletteIndex = receivedChars[2];
-      pinwheelDivisions = receivedChars[3];
-      divisionWidth = receivedChars[4];
-      divisionCurveParam = receivedChars[5];
-      rotationParam = receivedChars[6];
-      fadeParam = receivedChars[7];
 
-      if (previousPalette != currentPaletteIndex) {
-      currentPalette = palettes[currentPaletteIndex];
-      previousPalette = currentPaletteIndex;
+      memcpy(&params, receivedChars, sizeof(params));
+      
+      if (previousPalette != params.currentPaletteIndex) {
+      currentPalette = palettes[params.currentPaletteIndex];
+      previousPalette = params.currentPaletteIndex;
       }
     }
   }
@@ -269,13 +267,13 @@ void loop() {
     const float TOTAL_ANGLE = 360.0f ;
     const float TIME_DIVISOR = 1.0f / 120.0f ;
     const float paramNorm = 1.0f / 253.0f ;
-    float angleSize = TOTAL_ANGLE / pinwheelDivisions ;
+    float angleSize = TOTAL_ANGLE / params.pinwheelDivisions ;
     float angleSizeInv = 1.0f / angleSize ;
     // float angleRotationAmt = fmod(currentMillis * TIME_DIVISOR, angleSize);                  // use this line when only teensy with no rpi or mac
-    float angleRotationAmt = angleSize * (rotationParam * paramNorm) ;
-    float divisionWidthNorm = (divisionWidth * paramNorm) ;
-    float divisionCurve = (((divisionCurveParam * paramNorm) * 6.0f) - 3.0f) / pinwheelDivisions ;
-    float fadeNorm = fadeParam * paramNorm ;
+    float angleRotationAmt = angleSize * (params.rotation * paramNorm) ;
+    float divisionWidthNorm = (params.divisionWidth * paramNorm) ;
+    float divisionCurve = (((params.divisionCurve * paramNorm) * 6.0f) - 3.0f) / params.pinwheelDivisions ;
+    float fadeNorm = params.fade * paramNorm ;
     float slope = (fadeNorm - 1.0f) / (divisionWidthNorm - 1.0f);
 
     for (int i = 0; i < NUM_LEDS; i++) {
@@ -299,11 +297,11 @@ void loop() {
 
       leds[i] = leds[i].scale8(dimmermask);
 
-      if (radiihirez[i] > fmap(radiusCutoffParam, 0.0f, 253.0f, 0.0f, 255.0f ) ) {
+      if (radiihirez[i] > (params.radiusCutoff * paramNorm * 255.0f)) {
         leds[i] = CRGB::Black;
       }
       
-      leds[i] = leds[i].scale8(fmap(brightnessParam, 0.0f, 253.0f, 0.0f, 200.0f ));             // kinda feel like the LEDs burn out more quickly if they're as bright as possible
+      leds[i] = leds[i].scale8((params.brightness * paramNorm * 200.0f));             // kinda feel like the LEDs burn out more quickly if they're as bright as possible; limit to 200
     }
 
     // Transfer the data from FastLED's format to OctoWS2811
@@ -396,15 +394,15 @@ void test() {
 
 void nextPalette() {
   // Store the previous palette index
-  uint8_t previousPalette = currentPaletteIndex;
+  uint8_t previousPalette = params.currentPaletteIndex;
   
   // Keep selecting random palettes until we get one different from the previous
   do {
-    currentPaletteIndex = random8(paletteCount);
-  } while (currentPaletteIndex == previousPalette);
+    params.currentPaletteIndex = random8(paletteCount);
+  } while (params.currentPaletteIndex == previousPalette);
   
   // Update the current palette
-  currentPalette = palettes[currentPaletteIndex];
+  currentPalette = palettes[params.currentPaletteIndex];
 }
 
 void nextPattern() {
