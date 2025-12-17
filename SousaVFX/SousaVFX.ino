@@ -50,9 +50,7 @@ struct VFXParams {
     uint8_t divisionCurve = 126;
     uint8_t rotation = 0;
     uint8_t fade = 253;
-};
-
-VFXParams params;
+} params;
 
 float maskbrightnesscurve = 0;
 
