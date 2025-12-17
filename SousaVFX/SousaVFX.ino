@@ -13,9 +13,6 @@ const int frameInterval = ((1000 / FRAMES_PER_SECOND) * 1);
 const int micInterval = (100);
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
-uint8_t offset = 0; // rotating "base color" used by many of the patterns
-uint8_t speed = 12;
-
 boolean autoplay = false;
 uint8_t autoplaySeconds = 45;
 
@@ -52,7 +49,11 @@ struct VFXParams {
     uint8_t fadeIn = 253;
     uint8_t fadeOut = 253;
     uint8_t peakPos = 126;
+    uint8_t pattern = 0;
+    uint8_t gradientOffset = 0;
 } params;
+
+uint8_t angleOffsets[NUM_LEDS];
 
 OctoWS2811 octo(ledsPerStrip, displayMemory, drawingMemory, config);
 
@@ -103,26 +104,28 @@ void setup()
 typedef void (*SimplePatternList[])();
 SimplePatternList patterns = {
     // 2D map examples:
-     // clockwisePalette,
-     // counterClockwisePalette,
+
+    divisionPalette,
     outwardPalette,
     inwardPalette,
-    // northPalette,
-    //northEastPalette,
-    //eastPalette,
-    //southEastPalette,
-    //southPalette,
-    // southWestPalette,
-    //westPalette,
-    //northWestPalette,
+    clockwisePalette,
+    counterClockwisePalette,
+    northPalette,
+    northEastPalette,
+    eastPalette,
+    southEastPalette,
+    southPalette,
+    southWestPalette,
+    westPalette,
+    northWestPalette,
 
     // standard FastLED demo reel examples:
-    //  rainbow,
-    //  rainbowWithGlitter,
-    //  confetti,
-    //  sinelon,
-    //  juggle,
-    //  bpm
+    rainbow,
+    rainbowWithGlitter,
+    confetti,
+    sinelon,
+    juggle,
+    bpm
 };
 
 const uint8_t patternCount = ARRAY_SIZE(patterns);
@@ -244,9 +247,7 @@ void loop() {
     previousMillisLED = currentMillis;
 
     // Call the current pattern function, updating the 'leds' array
-    patterns[currentPatternIndex]();
-
-    offset = beat8(speed);
+    patterns[params.pattern]();
 
     // Check if it's time to change patterns
     if (autoplay && (currentMillis - previousPatternMillis >= autoplaySeconds * 1000)) {
@@ -285,6 +286,7 @@ void loop() {
       float angleOffset = angleshirez[i] + angleRotationAmt + (radiihirez[i] * divisionCurve);
       float angleDiff = fmod((angleOffset + 360.0f), angleSize);                                // +360 because fmod can't handle negative numbers
       float normalizedPos = angleDiff * angleSizeInv;
+      angleOffsets[i] = static_cast<int>(normalizedPos * 255.0f);
 
       // int dimmermask = (normalizedPos > divisionWidthNorm) ? 0 : 255;                        // just on or off
       // int dimmermask = normalizedPos * 255.0f;                                               // simplest fade
@@ -423,13 +425,24 @@ void nextPattern() {
   } while (currentPatternIndex == previousPattern);
 }
 
+// division-based pattern
+
+void divisionPalette()
+{
+  for (uint16_t i = 0; i < NUM_LEDS; i++)
+  {
+    leds[i] = ColorFromPalette(currentPalette, params.gradientOffset - angleOffsets[i]);
+  }
+}
+
+
 // 2D map examples:
 
 void clockwisePalette()
 {
   for (uint16_t i = 0; i < NUM_LEDS; i++)
   {
-    leds[i] = ColorFromPalette(currentPalette, offset + angles[i]);
+    leds[i] = ColorFromPalette(currentPalette, params.gradientOffset + angles[i]);
   }
 }
 
@@ -437,7 +450,7 @@ void counterClockwisePalette()
 {
   for (uint16_t i = 0; i < NUM_LEDS; i++)
   {
-    leds[i] = ColorFromPalette(currentPalette, offset - angles[i]);
+    leds[i] = ColorFromPalette(currentPalette, params.gradientOffset - angles[i]);
   }
 }
 
@@ -445,7 +458,7 @@ void outwardPalette()
 {
   for (uint16_t i = 0; i < NUM_LEDS; i++)
   {
-    leds[i] = ColorFromPalette(currentPalette, offset - radii[i]);
+    leds[i] = ColorFromPalette(currentPalette, params.gradientOffset - radii[i]);
   }
 }
 
@@ -453,7 +466,7 @@ void inwardPalette()
 {
   for (uint16_t i = 0; i < NUM_LEDS; i++)
   {
-    leds[i] = ColorFromPalette(currentPalette, offset + radii[i]);
+    leds[i] = ColorFromPalette(currentPalette, params.gradientOffset + radii[i]);
   }
 }
 
@@ -461,7 +474,7 @@ void northPalette()
 {
   for (uint16_t i = 0; i < NUM_LEDS; i++)
   {
-    leds[i] = ColorFromPalette(currentPalette, offset - coordsY[i]);
+    leds[i] = ColorFromPalette(currentPalette, params.gradientOffset - coordsY[i]);
   }
 }
 
@@ -469,7 +482,7 @@ void northEastPalette()
 {
   for (uint16_t i = 0; i < NUM_LEDS; i++)
   {
-    leds[i] = ColorFromPalette(currentPalette, offset - (coordsX[i] + coordsY[i]));
+    leds[i] = ColorFromPalette(currentPalette, params.gradientOffset - (coordsX[i] + coordsY[i]));
   }
 }
 
@@ -477,7 +490,7 @@ void eastPalette()
 {
   for (uint16_t i = 0; i < NUM_LEDS; i++)
   {
-    leds[i] = ColorFromPalette(currentPalette, offset - coordsX[i]);
+    leds[i] = ColorFromPalette(currentPalette, params.gradientOffset - coordsX[i]);
   }
 }
 
@@ -485,7 +498,7 @@ void southEastPalette()
 {
   for (uint16_t i = 0; i < NUM_LEDS; i++)
   {
-    leds[i] = ColorFromPalette(currentPalette, offset - coordsX[i] + coordsY[i]);
+    leds[i] = ColorFromPalette(currentPalette, params.gradientOffset - coordsX[i] + coordsY[i]);
   }
 }
 
@@ -493,7 +506,7 @@ void southPalette()
 {
   for (uint16_t i = 0; i < NUM_LEDS; i++)
   {
-    leds[i] = ColorFromPalette(currentPalette, offset + coordsY[i]);
+    leds[i] = ColorFromPalette(currentPalette, params.gradientOffset + coordsY[i]);
   }
 }
 
@@ -501,7 +514,7 @@ void southWestPalette()
 {
   for (uint16_t i = 0; i < NUM_LEDS; i++)
   {
-    leds[i] = ColorFromPalette(currentPalette, offset + coordsX[i] + coordsY[i]);
+    leds[i] = ColorFromPalette(currentPalette, params.gradientOffset + coordsX[i] + coordsY[i]);
   }
 }
 
@@ -509,7 +522,7 @@ void westPalette()
 {
   for (uint16_t i = 0; i < NUM_LEDS; i++)
   {
-    leds[i] = ColorFromPalette(currentPalette, offset + coordsX[i]);
+    leds[i] = ColorFromPalette(currentPalette, params.gradientOffset + coordsX[i]);
   }
 }
 
@@ -517,7 +530,7 @@ void northWestPalette()
 {
   for (uint16_t i = 0; i < NUM_LEDS; i++)
   {
-    leds[i] = ColorFromPalette(currentPalette, offset + coordsX[i] - coordsY[i]);
+    leds[i] = ColorFromPalette(currentPalette, params.gradientOffset + coordsX[i] - coordsY[i]);
   }
 }
 
@@ -526,7 +539,7 @@ void northWestPalette()
 void rainbow()
 {
   // FastLED's built-in rainbow generator
-  fill_rainbow(leds, NUM_LEDS, offset, 7);
+  fill_rainbow(leds, NUM_LEDS, params.gradientOffset, 7);
 }
 
 void rainbowWithGlitter()
@@ -549,7 +562,7 @@ void confetti()
   // random colored speckles that blink in and fade smoothly
   fadeToBlackBy(leds, NUM_LEDS, 10);
   int pos = random16(NUM_LEDS);
-  leds[pos] += CHSV(offset + random8(64), 200, 255);
+  leds[pos] += CHSV(params.gradientOffset + random8(64), 200, 255);
 }
 
 void sinelon()
@@ -557,7 +570,7 @@ void sinelon()
   // a colored dot sweeping back and forth, with fading trails
   fadeToBlackBy(leds, NUM_LEDS, 20);
   int pos = beatsin16(13, 0, NUM_LEDS - 1);
-  leds[pos] += CHSV(offset, 255, 192);
+  leds[pos] += CHSV(params.gradientOffset, 255, 192);
 }
 
 void bpm()
@@ -568,7 +581,7 @@ void bpm()
   uint8_t beat = beatsin8(BeatsPerMinute, 64, 255);
   for (int i = 0; i < NUM_LEDS; i++)
   { // 9948
-    leds[i] = ColorFromPalette(palette, offset + (i * 2), beat - offset + (i * 10));
+    leds[i] = ColorFromPalette(palette, params.gradientOffset + (i * 2), beat - params.gradientOffset + (i * 10));
   }
 }
 
