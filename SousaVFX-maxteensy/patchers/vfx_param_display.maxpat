@@ -86,7 +86,6 @@
             {
                 "box": {
                     "id": "obj-37",
-                    "ignoreclick": 1,
                     "maxclass": "number",
                     "maximum": 253,
                     "minimum": 0,
