@@ -9,7 +9,7 @@
             "modernui": 1
         },
         "classnamespace": "box",
-        "rect": [ 536.0, 112.0, 1195.0, 883.0 ],
+        "rect": [ 536.0, 112.0, 1451.0, 1260.0 ],
         "openinpresentation": 1,
         "boxes": [
             {
@@ -860,11 +860,6 @@
                     "outlettype": [ "", "list" ],
                     "patching_rect": [ 238.0, 390.0, 457.0, 22.0 ],
                     "rnboattrcache": {
-                        "framesPerSecond": {
-                            "label": "framesPerSecond",
-                            "isEnum": 0,
-                            "parsestring": ""
-                        },
                         "tuba_solo_vfx": {
                             "label": "tuba_solo_vfx",
                             "isEnum": 0,
@@ -872,6 +867,11 @@
                         },
                         "tuba_play_vfx": {
                             "label": "tuba_play_vfx",
+                            "isEnum": 0,
+                            "parsestring": ""
+                        },
+                        "framesPerSecond": {
+                            "label": "framesPerSecond",
                             "isEnum": 0,
                             "parsestring": ""
                         }
@@ -1285,7 +1285,7 @@
                     "allowdrag": 0,
                     "fontname": "Ableton Sans Medium",
                     "id": "obj-41",
-                    "items": [ "debug-console", ",", "MINIRIG4", ",", "Bluetooth-Incoming-Port", ",", "usbmodem40590801" ],
+                    "items": [ "debug-console", ",", "MINIRIG4", ",", "Bluetooth-Incoming-Port" ],
                     "maxclass": "umenu",
                     "numinlets": 1,
                     "numoutlets": 3,
@@ -1888,14 +1888,6 @@
         ],
         "parameters": {
             "obj-112": [ "live.text[10]", "live.text", 0 ],
-            "parameterbanks": {
-                "0": {
-                    "index": 0,
-                    "name": "",
-                    "parameters": [ "-", "-", "-", "-", "-", "-", "-", "-" ],
-                    "buttons": [ "-", "-", "-", "-", "-", "-", "-", "-" ]
-                }
-            },
             "inherited_shortname": 1
         },
         "autosave": 0,
