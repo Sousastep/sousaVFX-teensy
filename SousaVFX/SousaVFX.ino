@@ -1,6 +1,6 @@
 #include <OctoWS2811.h>
 #define USE_OCTOWS2811
-#include <FastLED.h> // https://github.com/FastLED/FastLED
+#include <FastLED.h>
 FASTLED_USING_NAMESPACE
 #define LED_TYPE WS2812B
 #define COLOR_ORDER GRB
@@ -14,9 +14,9 @@ const int micInterval = (100);
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
 boolean autoplay = false;
+boolean autoplayPalettes = false;
 uint8_t autoplaySeconds = 45;
 
-// Define constants
 const int config = WS2811_GRB | WS2811_800kHz; // why's this differ from #define LED_TYPE ?
 const int ledsPerStrip = 26;
 const int numStrips = 8;
@@ -24,7 +24,6 @@ const int numChannels = ledsPerStrip * numStrips * 3;
 const int maxDataLength = 700; //failsafe incase end marker doesn't appear or something
 const int electretMicEnabled = 0;
 
-// Declare variables
 char serial_array[numChannels];
 int serial_array_length = 0;
 DMAMEM int displayMemory[ledsPerStrip * 6];
@@ -144,7 +143,6 @@ const uint8_t paletteCount = ARRAY_SIZE(palettes);
 uint8_t previousPalette = 0;
 CRGBPalette16 currentPalette = palettes[params.currentPaletteIndex];
 
-boolean autoplayPalettes = false;
 uint8_t autoplayPaletteSeconds = autoplaySeconds * patternCount;
 
 uint8_t ease8InQuad(uint8_t i) {
@@ -172,10 +170,6 @@ uint8_t applyExponentialCurve(uint8_t value, float curve) {
   }
 
   return uint8_t(curved * 255.0f);
-}
-
-float fmap(float x, float in_min, float in_max, float out_min, float out_max) {
-    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
 void loop() {
@@ -280,19 +274,23 @@ void loop() {
     float slopeIn = (fadeInNorm - 1.0f) / (0.0f - peakPosNorm);
     float slopeOut = (1.0f - fadeOutNorm) / (peakPosNorm - divisionWidthNorm);
 
+    constexpr float radiusFadeLength = 0.3f;
+    constexpr float radiusCutoffSlope = 1.0f / (0.0f - radiusFadeLength);
+    constexpr float radiiNorm = 1.0f / 255.0f;
+    float radiusCutoff = params.radiusCutoff * paramNorm * 255.0f;
+
+    float brightnessNorm = params.brightness * paramNorm * 0.7f;
+
     for (int i = 0; i < NUM_LEDS; i++) {
       // int dimmermask = 255;
       /* these three lines handle circular rotation and curve */
       float angleOffset = angleshirez[i] + angleRotationAmt + (radiihirez[i] * divisionCurve);
-      float angleDiff = fmod((angleOffset + 360.0f), angleSize);                                // +360 because fmod can't handle negative numbers
+      float angleDiff = fmod((angleOffset + 1440.0f), angleSize);                                // +1440 because fmod can't handle negative numbers
       float normalizedPos = angleDiff * angleSizeInv;
-      angleOffsets[i] = static_cast<int>(normalizedPos * 255.0f);
 
-      // int dimmermask = (normalizedPos > divisionWidthNorm) ? 0 : 255;                        // just on or off
-      // int dimmermask = normalizedPos * 255.0f;                                               // simplest fade
-
-      /* calculate mask by plugging position, fade, and width into a piecewise linear equation w/ point-slope form using (1,1) as the fixed point */
-      // int dimmermask = (normalizedPos > divisionWidthNorm) ? (std::clamp( (int)( ( ( ( ( fadeNorm - 1.0f ) / ( divisionWidthNorm - 1.0f ) ) * ( normalizedPos - 1.0f) ) + 1.0f) * 255.0f), 0, 255) ) : 0;
+      if (params.pattern == 0) {
+        angleOffsets[i] = static_cast<int>(normalizedPos * 255.0f);
+      }
 
       int dimmermask = 0;
       if (normalizedPos < divisionWidthNorm) {
@@ -305,13 +303,14 @@ void loop() {
         dimmermask = std::clamp(static_cast<int>(fadeFactor * 255.0f), 0, 255);
       }
 
-      leds[i] = leds[i].scale8(dimmermask);
+      leds[i] = leds[i].scale8(dimmermask * brightnessNorm);
 
-      if (radiihirez[i] > (params.radiusCutoff * paramNorm * 255.0f)) {
-        leds[i] = CRGB::Black;
+      if (radiihirez[i] >= (radiusCutoff + (radiusFadeLength * 255.0f))) {
+          leds[i] = CRGB::Black;
+      } else if (radiihirez[i] >= radiusCutoff) {
+          int scale = static_cast<int>((radiusCutoffSlope * ((radiihirez[i] * radiiNorm) - (params.radiusCutoff * paramNorm)) + 1) * 255.0f);
+          leds[i] = leds[i].scale8(scale);
       }
-      
-      leds[i] = leds[i].scale8((params.brightness * paramNorm * 200.0f));             // kinda feel like the LEDs burn out more quickly if they're as bright as possible; limit to 200
     }
 
     // Transfer the data from FastLED's format to OctoWS2811
