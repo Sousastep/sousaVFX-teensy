@@ -41,7 +41,8 @@ struct VFXParams {
     uint8_t brightness = 80;
     uint8_t radiusCutoff = 253;
     uint8_t currentPaletteIndex = 0;
-    uint8_t pinwheelDivisions = 3;
+    uint8_t divisionHi = 3;
+    uint8_t divisionLo = 0;
     uint8_t divisionWidth = 126;
     uint8_t divisionCurve = 126;
     uint8_t rotation = 0;
@@ -145,31 +146,10 @@ CRGBPalette16 currentPalette = palettes[params.currentPaletteIndex];
 
 uint8_t autoplayPaletteSeconds = autoplaySeconds * patternCount;
 
-uint8_t ease8InQuad(uint8_t i) {
-    uint16_t i2 = i * i;  // Square the input (0-255 * 0-255 = 0-65025)
-    return i2 / 255;      // Scale back to 0-255 range
-}
-
-
 uint8_t ease8OutQuad(uint8_t i) {
     uint16_t inv = 255 - i;  // Invert the input
     uint16_t inv2 = inv * inv;  // Square the inverted input
     return 255 - (inv2 / 255);  // Scale back and invert to create ease out effect
-}
-
-uint8_t applyExponentialCurve(uint8_t value, float curve) {
-  float normalized = value / 255.0f;
-  float curved;
-
-  if (curve > 0.0f) {
-    curved = pow(normalized, curve);
-  } else if (curve < 0.0f) {
-    curved = 1.0f - pow(1.0f - normalized, -curve);
-  } else {
-    curved = normalized;  // linear if curve == 0
-  }
-
-  return uint8_t(curved * 255.0f);
 }
 
 void loop() {
@@ -260,12 +240,13 @@ void loop() {
     const float TOTAL_ANGLE = 360.0f ;
     const float TIME_DIVISOR = 1.0f / 120.0f ;
     const float paramNorm = 1.0f / 253.0f ;
-    float angleSize = TOTAL_ANGLE / params.pinwheelDivisions ;
+    float pinwheelDivisions = params.divisionHi + (params.divisionLo / 254.0f) ;
+    float angleSize = TOTAL_ANGLE / pinwheelDivisions ;
     float angleSizeInv = 1.0f / angleSize ;
     // float angleRotationAmt = fmod(currentMillis * TIME_DIVISOR, angleSize);                  // use this line when only teensy with no rpi or mac
     float angleRotationAmt = angleSize * (params.rotation * paramNorm) ;
     float divisionWidthNorm = (params.divisionWidth * paramNorm) ;
-    float divisionCurve = (((params.divisionCurve * paramNorm) * 6.0f) - 3.0f) / params.pinwheelDivisions ;
+    float divisionCurve = (((params.divisionCurve * paramNorm) * 6.0f) - 3.0f) / pinwheelDivisions ;
     
     float fadeInNorm = params.fadeIn * paramNorm ;
     float fadeOutNorm = params.fadeOut * paramNorm ;
