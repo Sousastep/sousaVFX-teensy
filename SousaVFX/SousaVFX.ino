@@ -37,6 +37,8 @@ unsigned long previousPatternMillis = 0;
 unsigned long previousPaletteMillis = 0;
 int vfx_env = 255;
 
+/* all params range from 0 to 253 due to using 254 and 255 as start and end markers 
+ * for incoming serial data via recvWithStartEndMarkers() */
 struct VFXParams {
     uint8_t brightness = 80;
     uint8_t radiusCutoff = 253;
@@ -235,35 +237,52 @@ void loop() {
       nextPalette();
     }
 
-    // moire patterns emerge with high numbers of divisions
-    // inspired by mojovideotech's pinwheel shader https://editor.isf.video/shaders/5e7a7fe07c113618206de624
-    const float TOTAL_ANGLE = 360.0f ;
-    const float TIME_DIVISOR = 1.0f / 120.0f ;
+    // Moire patterns emerge with high numbers of divisions
+    // inspired by: mojovideotech's pinwheel shader https://editor.isf.video/shaders/5e7a7fe07c113618206de624
+    //              & Jason Coon's work https://github.com/jasoncoon/
     const float paramNorm = 1.0f / 253.0f ;
-    float pinwheelDivisions = params.divisionHi + (params.divisionLo / 254.0f) ;
-    float angleSize = TOTAL_ANGLE / pinwheelDivisions ;
+
+    // divisionLo represents the fractional part of the overall number of pinwheel divisions.
+    // It's divided by 254 instead of 253 because divisionLo never needs to reach 1.
+    // ( all params range from 0 to 253 due to recvWithStartEndMarkers )
+    float divisionLo = (params.divisionLo / 254.0f) ;
+    float pinwheelDivisions = params.divisionHi + divisionLo ;
+    float pinwheelDivisionsInv = 1.0f / pinwheelDivisions ;
+    float angleSize = 360.0f * pinwheelDivisionsInv ;
     float angleSizeInv = 1.0f / angleSize ;
-    // float angleRotationAmt = fmod(currentMillis * TIME_DIVISOR, angleSize);                  // use this line when only teensy with no rpi or mac
-    float angleRotationAmt = angleSize * (params.rotation * paramNorm) ;
-    float divisionWidthNorm = (params.divisionWidth * paramNorm) ;
-    float divisionCurve = (((params.divisionCurve * paramNorm) * 6.0f) - 3.0f) / pinwheelDivisions ;
+
+    // For some reason, while divisionLo goes from 0 to 1, 
+    // the vfx does a 360 degree rotation with 4 divisions, 
+    // a 180 deg rot with 8 div, or a 90 deg rot with 16 div,
+    // which can be compensated for with the following expression:
+    float angleRotationCompensation = (divisionLo * 360.0f) * (4.0f * pinwheelDivisionsInv) ;
+
+    // Instead of doing a full 360 deg rot with params.rotation, 
+    // it's multiplied by angleSize so it only moves one "division length", which causes a full rotation of the moire pattern.
+    float angleRotationAmt = (angleSize * (params.rotation * paramNorm)) - angleRotationCompensation ;
     
+    // The following helps fade each division in and out, triangularly.
     float fadeInNorm = params.fadeIn * paramNorm ;
     float fadeOutNorm = params.fadeOut * paramNorm ;
-    float peakPosNorm = (params.peakPos * paramNorm) * divisionWidthNorm;
+    float divisionWidthNorm = (params.divisionWidth * paramNorm) ;
+    float peakPosNorm = (params.peakPos * paramNorm) * divisionWidthNorm ;
+    float slopeIn = (fadeInNorm - 1.0f) / (0.0f - peakPosNorm) ;
+    float slopeOut = (1.0f - fadeOutNorm) / (peakPosNorm - divisionWidthNorm) ;
 
-    float slopeIn = (fadeInNorm - 1.0f) / (0.0f - peakPosNorm);
-    float slopeOut = (1.0f - fadeOutNorm) / (peakPosNorm - divisionWidthNorm);
+    // Fade edge of radius cutoff.
+    constexpr float radiusFadeLength = 0.3f ;
+    constexpr float radiusCutoffSlope = 1.0f / (0.0f - radiusFadeLength) ;
+    constexpr float radiiNorm = 1.0f / 255.0f ;
+    float radiusCutoff = params.radiusCutoff * paramNorm * 255.0f ;
 
-    constexpr float radiusFadeLength = 0.3f;
-    constexpr float radiusCutoffSlope = 1.0f / (0.0f - radiusFadeLength);
-    constexpr float radiiNorm = 1.0f / 255.0f;
-    float radiusCutoff = params.radiusCutoff * paramNorm * 255.0f;
+    // TODO: Use Power Management Functions https://fastled.io/docs/d3/d1d/group___power.html
+    // Max brightness hardcoded to 70%
+    float brightnessNorm = params.brightness * paramNorm * 0.7f ;
 
-    float brightnessNorm = params.brightness * paramNorm * 0.7f;
+    // Divide curve amount by number of divisions to keep it sane.
+    float divisionCurve = (((params.divisionCurve * paramNorm) * 6.0f) - 3.0f) * pinwheelDivisionsInv ;
 
     for (int i = 0; i < NUM_LEDS; i++) {
-      // int dimmermask = 255;
       /* these three lines handle circular rotation and curve */
       float angleOffset = angleshirez[i] + angleRotationAmt + (radiihirez[i] * divisionCurve);
       float angleDiff = fmod((angleOffset + 1440.0f), angleSize);                                // +1440 because fmod can't handle negative numbers
