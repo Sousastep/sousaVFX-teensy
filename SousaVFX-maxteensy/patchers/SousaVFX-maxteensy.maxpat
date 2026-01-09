@@ -9,9 +9,58 @@
             "modernui": 1
         },
         "classnamespace": "box",
-        "rect": [ 444.0, 87.0, 1836.0, 1260.0 ],
+        "rect": [ 623.0, 203.0, 1903.0, 1193.0 ],
         "openinpresentation": 1,
         "boxes": [
+            {
+                "box": {
+                    "id": "obj-47",
+                    "maxclass": "newobj",
+                    "numinlets": 2,
+                    "numoutlets": 1,
+                    "outlettype": [ "int" ],
+                    "patching_rect": [ 77.0, 710.0, 37.0, 22.0 ],
+                    "text": "* 253"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-105",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 2,
+                    "outlettype": [ "int", "int" ],
+                    "patching_rect": [ 77.0, 620.0, 29.5, 22.0 ],
+                    "text": "t i i"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-104",
+                    "maxclass": "live.scope~",
+                    "numinlets": 2,
+                    "numoutlets": 1,
+                    "outlettype": [ "bang" ],
+                    "patching_rect": [ 672.0, 282.0, 81.0, 28.0 ],
+                    "presentation": 1,
+                    "presentation_rect": [ 20.0, 294.0, 81.0, 28.0 ],
+                    "range": [ -0.1, 1.1 ]
+                }
+            },
+            {
+                "box": {
+                    "bgcolor": [ 0.07843137254902, 0.07843137254902, 0.07843137254902, 1.0 ],
+                    "color": [ 0.10196078431372549, 0.5098039215686274, 0.796078431372549, 1.0 ],
+                    "id": "obj-103",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 1,
+                    "outlettype": [ "signal" ],
+                    "patching_rect": [ 687.5, 250.0, 76.0, 22.0 ],
+                    "text": "r~ drum_env",
+                    "textcolor": [ 0.647058823529412, 1.0, 0.725490196078431, 1.0 ]
+                }
+            },
             {
                 "box": {
                     "id": "obj-46",
@@ -30,7 +79,7 @@
                     "numinlets": 1,
                     "numoutlets": 4,
                     "outlettype": [ "int", "float", "int", "int" ],
-                    "patching_rect": [ 107.0, 509.5, 62.0, 22.0 ],
+                    "patching_rect": [ 107.0, 510.5, 62.0, 22.0 ],
                     "text": "dspstate~"
                 }
             },
@@ -41,7 +90,7 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 77.0, 545.5, 49.0, 22.0 ],
+                    "patching_rect": [ 77.0, 547.0, 49.0, 22.0 ],
                     "text": "pak 0 0"
                 }
             },
@@ -52,7 +101,7 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "int" ],
-                    "patching_rect": [ 77.0, 581.5, 29.5, 22.0 ],
+                    "patching_rect": [ 77.0, 583.5, 49.0, 22.0 ],
                     "text": "||"
                 }
             },
@@ -63,7 +112,7 @@
                     "numinlets": 2,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 77.0, 473.5, 58.0, 22.0 ],
+                    "patching_rect": [ 77.0, 474.0, 58.0, 22.0 ],
                     "text": "route set"
                 }
             },
@@ -108,7 +157,7 @@
                     "numinlets": 0,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 676.0, 344.0, 73.0, 22.0 ],
+                    "patching_rect": [ 762.4166666666666, 355.0, 73.0, 22.0 ],
                     "text": "r FX-to-VFX"
                 }
             },
@@ -152,9 +201,9 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "bang" ],
-                    "patching_rect": [ 586.0, 247.0, 81.0, 28.0 ],
+                    "patching_rect": [ 595.5833333333333, 247.0, 81.0, 28.0 ],
                     "presentation": 1,
-                    "presentation_rect": [ 22.0, 284.0, 81.0, 28.0 ],
+                    "presentation_rect": [ 20.0, 262.0, 81.0, 28.0 ],
                     "range": [ -0.1, 1.1 ]
                 }
             },
@@ -165,9 +214,9 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "bang" ],
-                    "patching_rect": [ 515.0, 212.0, 81.0, 28.0 ],
+                    "patching_rect": [ 522.6666666666666, 212.0, 81.0, 28.0 ],
                     "presentation": 1,
-                    "presentation_rect": [ 22.0, 252.0, 81.0, 28.0 ],
+                    "presentation_rect": [ 20.0, 230.0, 81.0, 28.0 ],
                     "range": [ -0.1, 1.1 ]
                 }
             },
@@ -178,9 +227,9 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "bang" ],
-                    "patching_rect": [ 440.0, 177.0, 81.0, 28.0 ],
+                    "patching_rect": [ 445.75, 177.0, 81.0, 28.0 ],
                     "presentation": 1,
-                    "presentation_rect": [ 22.0, 219.0, 81.0, 28.0 ],
+                    "presentation_rect": [ 20.0, 198.0, 81.0, 28.0 ],
                     "range": [ -0.1, 1.1 ]
                 }
             },
@@ -191,9 +240,9 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "bang" ],
-                    "patching_rect": [ 366.0, 141.0, 81.0, 28.0 ],
+                    "patching_rect": [ 370.0, 141.0, 81.0, 28.0 ],
                     "presentation": 1,
-                    "presentation_rect": [ 22.0, 186.0, 81.0, 28.0 ],
+                    "presentation_rect": [ 20.0, 165.0, 81.0, 28.0 ],
                     "range": [ -0.1, 1.1 ]
                 }
             },
@@ -204,9 +253,9 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "bang" ],
-                    "patching_rect": [ 290.0, 106.0, 81.0, 28.0 ],
+                    "patching_rect": [ 291.91666666666663, 106.0, 81.0, 28.0 ],
                     "presentation": 1,
-                    "presentation_rect": [ 22.0, 154.0, 81.0, 28.0 ],
+                    "presentation_rect": [ 20.0, 133.0, 81.0, 28.0 ],
                     "range": [ -0.1, 1.1 ]
                 }
             },
@@ -219,7 +268,7 @@
                     "outlettype": [ "bang" ],
                     "patching_rect": [ 214.0, 70.0, 81.0, 28.0 ],
                     "presentation": 1,
-                    "presentation_rect": [ 22.0, 121.0, 81.0, 28.0 ],
+                    "presentation_rect": [ 20.0, 101.0, 81.0, 28.0 ],
                     "range": [ -0.1, 1.1 ]
                 }
             },
@@ -514,7 +563,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "offset": [ 0.0, 0.0 ],
-                    "outlettype": [ "" ],
+                    "outlettype": [ "int" ],
                     "patching_rect": [ 205.0, 1038.0, 151.0, 29.0 ],
                     "presentation": 1,
                     "presentation_rect": [ 12.0, 547.0, 151.0, 29.0 ],
@@ -846,8 +895,8 @@
                     "numinlets": 14,
                     "numoutlets": 14,
                     "outlettype": [ "", "", "", "", "", "", "", "", "", "", "", "", "", "" ],
-                    "patching_rect": [ 205.0, 497.00000000000006, 663.0, 22.0 ],
-                    "text": "route brightness radius palette divisionHi divisionLo width curve rotation fadeIn fadeOut peakPosition pattern gradientOffset"
+                    "patching_rect": [ 205.0, 497.00000000000006, 675.0, 22.0 ],
+                    "text": "route brightness radius palette divisionsHi divisionsLo width curve rotation fadeIn fadeOut peakPosition pattern gradientOffset"
                 }
             },
             {
@@ -893,6 +942,12 @@
                                 "comment": "6 tuba envelope"
                             },
                             {
+                                "type": "signal",
+                                "index": 7,
+                                "tag": "in7",
+                                "comment": "7 drum envelope"
+                            },
+                            {
                                 "type": "midi",
                                 "index": -1,
                                 "tag": "",
@@ -901,21 +956,16 @@
                         ]
                     },
                     "maxclass": "newobj",
-                    "numinlets": 7,
+                    "numinlets": 8,
                     "numoutlets": 1,
                     "outletInfo": {
                         "IOInfo": []
                     },
                     "outlettype": [ "list" ],
-                    "patching_rect": [ 238.0, 390.0, 457.0, 22.0 ],
+                    "patching_rect": [ 238.0, 390.0, 543.4166666666666, 22.0 ],
                     "rnboattrcache": {
                         "framesPerSecond": {
                             "label": "framesPerSecond",
-                            "isEnum": 0,
-                            "parsestring": ""
-                        },
-                        "main_looper_state": {
-                            "label": "main_looper_state",
                             "isEnum": 0,
                             "parsestring": ""
                         }
@@ -940,7 +990,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "signal" ],
-                    "patching_rect": [ 530.0, 180.0, 178.0, 22.0 ],
+                    "patching_rect": [ 537.6666666666666, 180.0, 178.0, 22.0 ],
                     "text": "r~ Low_Amp_Mod_w_tuba_env",
                     "textcolor": [ 0.647058823529412, 1.0, 0.725490196078431, 1.0 ]
                 }
@@ -954,7 +1004,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "signal" ],
-                    "patching_rect": [ 457.0, 144.0, 180.0, 22.0 ],
+                    "patching_rect": [ 462.75, 144.0, 180.0, 22.0 ],
                     "text": "r~ High_Freq_Mod_w_tuba_env",
                     "textcolor": [ 0.647058823529412, 1.0, 0.725490196078431, 1.0 ]
                 }
@@ -982,7 +1032,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "signal" ],
-                    "patching_rect": [ 384.0, 109.0, 205.0, 22.0 ],
+                    "patching_rect": [ 388.0, 109.0, 205.0, 22.0 ],
                     "text": "r~ Dry-Wet_Mix_no_transient_helper",
                     "textcolor": [ 0.647058823529412, 1.0, 0.725490196078431, 1.0 ]
                 }
@@ -996,7 +1046,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "signal" ],
-                    "patching_rect": [ 311.0, 73.0, 275.0, 22.0 ],
+                    "patching_rect": [ 312.91666666666663, 73.0, 275.0, 22.0 ],
                     "text": "r~ Phasor_with_phase_offset_and_rate_multiplier",
                     "textcolor": [ 0.647058823529412, 1.0, 0.725490196078431, 1.0 ]
                 }
@@ -1010,7 +1060,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "signal" ],
-                    "patching_rect": [ 603.0, 215.0, 127.0, 22.0 ],
+                    "patching_rect": [ 612.5833333333333, 215.0, 127.0, 22.0 ],
                     "text": "r~ tuba_env_w_delrev",
                     "textcolor": [ 0.647058823529412, 1.0, 0.725490196078431, 1.0 ]
                 }
@@ -1318,7 +1368,7 @@
                     "allowdrag": 0,
                     "fontname": "Ableton Sans Medium",
                     "id": "obj-41",
-                    "items": [ "debug-console", ",", "MINIRIG4", ",", "Bluetooth-Incoming-Port", ",", "usbmodem40590801" ],
+                    "items": [ "debug-console", ",", "usbmodem40590801", ",", "MINIRIG4", ",", "Bluetooth-Incoming-Port" ],
                     "maxclass": "umenu",
                     "numinlets": 1,
                     "numoutlets": 3,
@@ -1389,6 +1439,33 @@
                 "patchline": {
                     "destination": [ "obj-346", 5 ],
                     "source": [ "obj-10", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-104", 0 ],
+                    "order": 1,
+                    "source": [ "obj-103", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-57", 6 ],
+                    "order": 0,
+                    "source": [ "obj-103", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-46", 0 ],
+                    "midpoints": [ 97.0, 667.0, 192.0, 667.0, 192.0, 420.0, 214.5, 420.0 ],
+                    "source": [ "obj-105", 1 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-47", 0 ],
+                    "source": [ "obj-105", 0 ]
                 }
             },
             {
@@ -1488,7 +1565,7 @@
             },
             {
                 "patchline": {
-                    "destination": [ "obj-57", 6 ],
+                    "destination": [ "obj-57", 7 ],
                     "source": [ "obj-152", 0 ]
                 }
             },
@@ -1543,8 +1620,7 @@
             },
             {
                 "patchline": {
-                    "destination": [ "obj-46", 0 ],
-                    "midpoints": [ 86.5, 622.0, 192.0, 622.0, 192.0, 420.0, 214.5, 420.0 ],
+                    "destination": [ "obj-105", 0 ],
                     "source": [ "obj-21", 0 ]
                 }
             },
@@ -1752,6 +1828,12 @@
                 "patchline": {
                     "destination": [ "obj-71", 0 ],
                     "source": [ "obj-46", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-23", 0 ],
+                    "source": [ "obj-47", 0 ]
                 }
             },
             {
