@@ -9,7 +9,7 @@
             "modernui": 1
         },
         "classnamespace": "box",
-        "rect": [ 1159.0, 87.0, 566.0, 1020.0 ],
+        "rect": [ 34.0, 87.0, 1586.0, 1254.0 ],
         "openinpresentation": 1,
         "boxes": [
             {
@@ -108,7 +108,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "int", "int" ],
-                    "patching_rect": [ 619.0, 629.0, 29.5, 22.0 ],
+                    "patching_rect": [ 619.0, 666.0, 29.5, 22.0 ],
                     "text": "t i i"
                 }
             },
@@ -1543,7 +1543,7 @@
             {
                 "patchline": {
                     "destination": [ "obj-46", 0 ],
-                    "midpoints": [ 639.0, 676.0, 734.0, 676.0, 734.0, 429.0, 756.5, 429.0 ],
+                    "midpoints": [ 639.0, 701.0, 734.0, 701.0, 734.0, 429.0, 756.5, 429.0 ],
                     "source": [ "obj-105", 1 ]
                 }
             },
