@@ -9,7 +9,7 @@ FASTLED_USING_NAMESPACE
 #include "coordinate_maps.h"
 
 #define FRAMES_PER_SECOND 160
-const int frameInterval = ((1000 / FRAMES_PER_SECOND) * 1);
+const uint16_t frameInterval = 1000000 / FRAMES_PER_SECOND;
 const int micInterval = (100);
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
@@ -21,14 +21,12 @@ const int config = WS2811_GRB | WS2811_800kHz; // why's this differ from #define
 const int ledsPerStrip = 26;
 const int numStrips = 8;
 const int numChannels = ledsPerStrip * numStrips * 3;
-const int maxDataLength = 700; //failsafe incase end marker doesn't appear or something
 const int electretMicEnabled = 0;
 
 char serial_array[numChannels];
 int serial_array_length = 0;
 DMAMEM int displayMemory[ledsPerStrip * 6];
 int drawingMemory[ledsPerStrip * 6];
-char receivedChars[numChannels + 1];
 boolean newData = false;        // newData is used to determine if there is a new command
 unsigned long previousMillis = 0;  // will store last time mic was updated
 unsigned long previousMicros = 0;
@@ -39,7 +37,7 @@ int vfx_env = 255;
 
 /* all params range from 0 to 253 due to using 254 and 255 as start and end markers 
  * for incoming serial data via recvWithStartEndMarkers() */
-struct VFXParams {
+struct __attribute__((packed)) VFXParams {
     uint8_t brightness = 80;
     uint8_t radiusCutoff = 253;
     uint8_t currentPaletteIndex = 0;
@@ -55,6 +53,8 @@ struct VFXParams {
     uint8_t gradientOffset = 0;
 } params;
 
+const uint8_t sizeofparams = sizeof(VFXParams);
+uint8_t receivedChars[sizeofparams];
 uint8_t angleOffsets[NUM_LEDS];
 
 OctoWS2811 octo(ledsPerStrip, displayMemory, drawingMemory, config);
@@ -218,9 +218,8 @@ void loop() {
     previousMicros = currentMicros;
   }
 
-  if (currentMillis - previousMillisLED >= frameInterval && currentDevice == RASPBERRY_PI) {
-    // save the last time you blinked the LED
-    previousMillisLED = currentMillis;
+  if (newData && currentMicros - previousMicros >= frameInterval && currentDevice == RASPBERRY_PI) {
+    previousMicros = currentMicros;
 
     // Call the current pattern function, updating the 'leds' array
     patterns[params.pattern]();
@@ -347,14 +346,14 @@ void recvWithStartEndMarkers()
     {
       if (rc != endMarker)
       {
-        if (ndx < maxDataLength) {
+        if (ndx < sizeofparams) {
           receivedChars[ndx] = rc;
           ndx++;
         }
       }
       else // when rc == endMarker
       {
-        receivedChars[ndx] = '\0'; // terminate the string
+        // receivedChars[ndx] = '\0'; // terminate the string
         recvInProgress = false;
 
         // Device detection based on frame length
