@@ -9,7 +9,7 @@
             "modernui": 1
         },
         "classnamespace": "box",
-        "rect": [ 34.0, 87.0, 1586.0, 1254.0 ],
+        "rect": [ 742.0, 87.0, 1586.0, 1254.0 ],
         "openinpresentation": 1,
         "boxes": [
             {
@@ -937,7 +937,7 @@
                     "numoutlets": 1,
                     "outlettype": [ "" ],
                     "patching_rect": [ 38.0, 268.0, 83.0, 22.0 ],
-                    "text": "loadmess 160"
+                    "text": "loadmess 320"
                 }
             },
             {
@@ -1453,7 +1453,7 @@
                     "allowdrag": 0,
                     "fontname": "Ableton Sans Medium",
                     "id": "obj-41",
-                    "items": [ "debug-console", ",", "usbmodem40590801", ",", "MINIRIG4", ",", "Bluetooth-Incoming-Port" ],
+                    "items": [ "debug-console", ",", "MINIRIG4", ",", "Bluetooth-Incoming-Port", ",", "usbmodem40590801" ],
                     "maxclass": "umenu",
                     "numinlets": 1,
                     "numoutlets": 3,
@@ -2143,14 +2143,6 @@
         ],
         "parameters": {
             "obj-112": [ "live.text[10]", "live.text", 0 ],
-            "parameterbanks": {
-                "0": {
-                    "index": 0,
-                    "name": "",
-                    "parameters": [ "-", "-", "-", "-", "-", "-", "-", "-" ],
-                    "buttons": [ "-", "-", "-", "-", "-", "-", "-", "-" ]
-                }
-            },
             "inherited_shortname": 1
         },
         "autosave": 0,
