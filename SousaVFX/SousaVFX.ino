@@ -8,14 +8,9 @@ FASTLED_USING_NAMESPACE
 
 #include "coordinate_maps.h"
 
-#define FRAMES_PER_SECOND 160
+#define FRAMES_PER_SECOND 260
 const uint16_t frameInterval = 1000000 / FRAMES_PER_SECOND;
-const int micInterval = (100);
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
-
-boolean autoplay = false;
-boolean autoplayPalettes = false;
-uint8_t autoplaySeconds = 45;
 
 const int config = WS2811_GRB | WS2811_800kHz; // why's this differ from #define LED_TYPE ?
 const int ledsPerStrip = 26;
@@ -30,10 +25,8 @@ int drawingMemory[ledsPerStrip * 6];
 boolean newData = false;        // newData is used to determine if there is a new command
 unsigned long previousMillis = 0;  // will store last time mic was updated
 unsigned long previousMicros = 0;
-unsigned long previousMillisLED = 0;  // will store last time LED was updated
 unsigned long previousPatternMillis = 0;
 unsigned long previousPaletteMillis = 0;
-int vfx_env = 255;
 
 /* all params range from 0 to 253 due to using 254 and 255 as start and end markers 
  * for incoming serial data via recvWithStartEndMarkers() */
@@ -81,23 +74,14 @@ int sensorValue = 0;  // value read from the pot
 
 // Detect which device is connected
 enum DeviceType { UNKNOWN, RASPBERRY_PI, MAC_MAX };
-static DeviceType currentDevice = RASPBERRY_PI;
 static int frameCount = 0;
 static int frameLengths[10]; // Store recent frame lengths for analysis
 
 void setup()
 {
   random16_set_seed(analogRead(A0));
-
   Serial.begin(115200);
-
-  // initialize all the readings to 0:
-  for (int thisReading = 0; thisReading < numReadings; thisReading++) {
-    readings[thisReading] = 0;
-  }
-
   FastLED.setBrightness(BRIGHTNESS);
-
   octo.begin();
   test();
 }
@@ -136,9 +120,7 @@ uint8_t currentPatternIndex = 0; // Index number of which pattern is current
 
 CRGBPalette16 IceColors_p = CRGBPalette16(CRGB::Black, CRGB::Blue, CRGB::Aqua, CRGB::White);
 
-
 #include "palettes.h"
-
 
 // Count of how many cpt-city gradients are defined:
 const uint8_t paletteCount = ARRAY_SIZE(palettes);
@@ -146,95 +128,28 @@ const uint8_t paletteCount = ARRAY_SIZE(palettes);
 uint8_t previousPalette = 0;
 CRGBPalette16 currentPalette = palettes[params.currentPaletteIndex];
 
-uint8_t autoplayPaletteSeconds = autoplaySeconds * patternCount;
-
-uint8_t ease8OutQuad(uint8_t i) {
-    uint16_t inv = 255 - i;  // Invert the input
-    uint16_t inv2 = inv * inv;  // Square the inverted input
-    return 255 - (inv2 / 255);  // Scale back and invert to create ease out effect
-}
-
 void loop() {
 
-  // get rnbo's outport values from rpi via usb serial
-  if (!electretMicEnabled) {    // if electret mic connected directly to teensy is disabled, read from serial input
-    recvWithStartEndMarkers();  // check to see if we have received any new commands
-    if (newData && currentDevice == RASPBERRY_PI) {
+  recvWithStartEndMarkers();  // check to see if we have received any new commands
+  if (newData) {
 
-      memcpy(&params, receivedChars, sizeof(params));
-      
-      if (previousPalette != params.currentPaletteIndex) {
-      currentPalette = palettes[params.currentPaletteIndex];
-      previousPalette = params.currentPaletteIndex;
-      }
+    memcpy(&params, receivedChars, sizeofparams);
+    
+    if (previousPalette != params.currentPaletteIndex) {
+    currentPalette = palettes[params.currentPaletteIndex];
+    previousPalette = params.currentPaletteIndex;
     }
   }
 
   // Current time
   unsigned long currentMillis = millis();
   unsigned long currentMicros = micros();
-  
-  if ((currentMicros - previousMicros >= (micInterval)) && electretMicEnabled && currentDevice == UNKNOWN) {
-      // subtract the last reading:
-    total = total - readings[readIndex];
-      // read from the sensor:
-    readings[readIndex] = std::clamp(analogRead(analogInPin), 700, 715);
-      // add the reading to the total:
-    total = total + readings[readIndex];
-    
-      // Track the peak value
-    if (readings[readIndex] > peak) {
-      peak = readings[readIndex];
-    }
-  
-      // advance to the next position in the array:
-    readIndex = readIndex + 1;
 
-      // if we're at the end of the array...
-    if (readIndex >= numReadings) {
-      
-        // Apply asymmetric smoothing
-      if (peak > smoothedValue) {
-          smoothedValue += alphaUp * (peak - smoothedValue);
-      } else {
-          smoothedValue += alphaDown * (peak - smoothedValue);
-      }
-
-      vfx_env = ease8OutQuad(std::clamp((int)map(smoothedValue, 700, 715, 0, 255), 0, 255));
-
-      Serial.print(0); // To freeze the lower limit
-      Serial.print(" ");
-      Serial.print(255); // To freeze the upper limit
-      Serial.print(" ");
-      Serial.println(vfx_env); // To send all three 'data' points to the plotter
-
-
-        // ...wrap around to the beginning:
-      readIndex = 0;
-    
-        // reset peak after each full cycle of readings
-      peak = readings[readIndex];
-    }
-    previousMicros = currentMicros;
-  }
-
-  if (newData && currentMicros - previousMicros >= frameInterval && currentDevice == RASPBERRY_PI) {
+  if (newData && currentMicros - previousMicros >= frameInterval) {
     previousMicros = currentMicros;
 
     // Call the current pattern function, updating the 'leds' array
     patterns[params.pattern]();
-
-    // Check if it's time to change patterns
-    if (autoplay && (currentMillis - previousPatternMillis >= autoplaySeconds * 1000)) {
-      previousPatternMillis = currentMillis;
-      nextPattern();
-    }
-
-    // Check if it's time to change palettes
-    if (autoplayPalettes && (currentMillis - previousPaletteMillis >= autoplaySeconds * 1000)) {
-      previousPaletteMillis = currentMillis;
-      nextPalette();
-    }
 
     // Moire patterns emerge with high numbers of divisions
     // inspired by: mojovideotech's pinwheel shader https://editor.isf.video/shaders/5e7a7fe07c113618206de624
@@ -248,7 +163,6 @@ void loop() {
     float pinwheelDivisions = params.divisionHi + divisionLo ;
     float pinwheelDivisionsInv = 1.0f / pinwheelDivisions ;
     float angleSize = 360.0f * pinwheelDivisionsInv ;
-    float angleSizeInv = 1.0f / angleSize ;
 
     // For some reason, while divisionLo goes from 0 to 1, 
     // the vfx does a 360 degree rotation with 4 divisions, 
@@ -269,7 +183,7 @@ void loop() {
     float slopeOut = (1.0f - fadeOutNorm) / (peakPosNorm - divisionWidthNorm) ;
 
     // Fade edge of radius cutoff.
-    constexpr float radiusFadeLength = 0.3f ;
+    constexpr float radiusFadeLength = 0.08f ;
     constexpr float radiusCutoffSlope = 1.0f / (0.0f - radiusFadeLength) ;
     constexpr float radiiNorm = 1.0f / 255.0f ;
     float radiusCutoff = params.radiusCutoff * paramNorm * 255.0f ;
@@ -281,35 +195,62 @@ void loop() {
     // Divide curve amount by number of divisions to keep it sane.
     float divisionCurve = (((params.divisionCurve * paramNorm) * 6.0f) - 3.0f) * pinwheelDivisionsInv ;
 
+    // gemini recommends uint16_t wrap instead of fmod 
+    float divisionsPerCircle = pinwheelDivisions;
+    float phaseMultiplier = (1.0f / 360.0f) * divisionsPerCircle;
+    uint16_t divisionWidthFixed = divisionWidthNorm * 65535.0f;
+    uint16_t peakPosFixed = peakPosNorm * 65535.0f;
+    float rotationNormalized = angleRotationAmt * (1.0f / 360.0f) * divisionsPerCircle;
+    float curveNormalized = divisionCurve * (1.0f / 360.0f) * divisionsPerCircle;
+
+    float slopeIn255 = slopeIn * 255.0f;
+    float slopeOut255 = slopeOut * 255.0f;
+
+    // the result should be in the 0.0 - 255.0 range for the dimmermask
+    // So multiply the original slope by 255 and divide by 65536
+    const float scaleFactor = 255.0f / 65536.0f;
+    float adjSlopeIn = slopeIn * scaleFactor;
+    float adjSlopeOut = slopeOut * scaleFactor;
+
+    bool firstPattern = (params.pattern == 0);
+
+    float radiusCutoffNorm = params.radiusCutoff * paramNorm;
+
+    float radiusCutoffEnd = radiusCutoff + (radiusFadeLength * 255.0f);
+
     for (int i = 0; i < NUM_LEDS; i++) {
-      /* these three lines handle circular rotation and curve */
-      float angleOffset = angleshirez[i] + angleRotationAmt + (radiihirez[i] * divisionCurve);
-      float angleDiff = fmod((angleOffset + 1440.0f), angleSize);                                // +1440 because fmod can't handle negative numbers
-      float normalizedPos = angleDiff * angleSizeInv;
+      
+      float totalPhase = (angleshirez[i] * phaseMultiplier) + rotationNormalized + (radiihirez[i] * curveNormalized);
 
-      if (params.pattern == 0) {
-        angleOffsets[i] = static_cast<int>(normalizedPos * 255.0f);
+      // use int wrap instead of fmod:
+      // On ARM, negative floats cast to unsigned types are clipped at 0 instead of wrapped.
+      // Bridge Cast allows wrap-around behavior: Float -> Signed Int -> Unsigned Int
+      uint16_t normalizedPos16 = static_cast<uint16_t>(static_cast<int32_t>(totalPhase * 65536.0f));
+
+      if (firstPattern) {
+        // High byte of uint16_t gives a uint8_t value
+        angleOffsets[i] = normalizedPos16 >> 8; 
       }
 
-      int dimmermask = 0;
-      if (normalizedPos < divisionWidthNorm) {
-        float fadeFactor = 1.0f;
-        if (normalizedPos < peakPosNorm) {
-          fadeFactor = slopeIn * (normalizedPos - peakPosNorm) + 1.0f;
-        } else {
-          fadeFactor = slopeOut * (normalizedPos - peakPosNorm) + 1.0f;
-        }
-        dimmermask = std::clamp(static_cast<int>(fadeFactor * 255.0f), 0, 255);
+      // Calculate pinwheel division's fade ins and outs
+      int32_t deltaFixed = static_cast<int32_t>(normalizedPos16) - static_cast<int32_t>(peakPosFixed);
+      float currentSlope = (normalizedPos16 < peakPosFixed) ? adjSlopeIn : adjSlopeOut;
+      float fade = (deltaFixed * currentSlope) + 255.0f;
+      float gate = (normalizedPos16 < divisionWidthFixed) ? 1.0f : 0.0f;
+      float dimmermask = (fmaxf(0.0f, fade) * gate);
+      
+      // Calculate fade out above certain radius
+      float radiiFade;
+      if (radiihirez[i] >= (radiusCutoffEnd)) {
+        radiiFade = 0.0f;
+      } else if (radiihirez[i] > radiusCutoff) {
+        radiiFade = (radiusCutoffSlope * ((radiihirez[i] * radiiNorm) - radiusCutoffNorm) + 1.0f);
+      } else {
+        radiiFade = 1.0f;
       }
 
-      leds[i] = leds[i].scale8(dimmermask * brightnessNorm);
+      leds[i].nscale8(radiiFade * dimmermask * brightnessNorm);
 
-      if (radiihirez[i] >= (radiusCutoff + (radiusFadeLength * 255.0f))) {
-          leds[i] = CRGB::Black;
-      } else if (radiihirez[i] >= radiusCutoff) {
-          int scale = static_cast<int>((radiusCutoffSlope * ((radiihirez[i] * radiiNorm) - (params.radiusCutoff * paramNorm)) + 1) * 255.0f);
-          leds[i] = leds[i].scale8(scale);
-      }
     }
 
     // Transfer the data from FastLED's format to OctoWS2811
@@ -320,15 +261,6 @@ void loop() {
     // Display once per frame
     octo.show();
   
-  }
-
-  if (currentDevice == MAC_MAX) {
-    if (newData)  {
-      for (int i = 0; i < ledsPerStrip * numStrips ; i++)
-        octo.setPixel(i, receivedChars[i * 3], receivedChars[i * 3 + 1], receivedChars[i * 3 + 2]);
-      octo.show();
-      newData = false;
-    }
   }
 }
 
@@ -355,17 +287,6 @@ void recvWithStartEndMarkers()
       {
         // receivedChars[ndx] = '\0'; // terminate the string
         recvInProgress = false;
-
-        // Device detection based on frame length
-        if (currentDevice == UNKNOWN && frameCount < 10) {
-          frameLengths[frameCount] = ndx;
-          frameCount++;
-          
-          if (frameCount >= 3) { // Analyze after 3 frames
-            detectDeviceType();
-          }
-        }
-
         ndx = 0;
         newData = true;
       }
@@ -373,20 +294,6 @@ void recvWithStartEndMarkers()
     else if (rc == startMarker) {
       recvInProgress = true;
     }
-  }
-}
-
-void detectDeviceType() {
-  int avgLength = 0;
-  for (int i = 0; i < frameCount; i++) {
-    avgLength += frameLengths[i];
-  }
-  avgLength /= frameCount;
-  
-  if (avgLength < 10) {
-    currentDevice = RASPBERRY_PI;
-  } else if (avgLength > 100) {
-    currentDevice = MAC_MAX;
   }
 }
 
@@ -422,6 +329,8 @@ void nextPattern() {
     currentPatternIndex = random8(patternCount);
   } while (currentPatternIndex == previousPattern);
 }
+
+// TODO: scale params.gradientOffset (it's 0 to 253 rn)
 
 // division-based pattern
 
