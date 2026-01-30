@@ -167,8 +167,9 @@ void loop() {
     // For some reason, while divisionLo goes from 0 to 1, 
     // the vfx does a 360 degree rotation with 4 divisions, 
     // a 180 deg rot with 8 div, or a 90 deg rot with 16 div,
-    // which can be compensated for with the following expression:
-    float angleRotationCompensation = (divisionLo * 360.0f) * (4.0f * pinwheelDivisionsInv) ;
+    // which can be compensated for with the following expression
+    // which can now be commented out after replacing fmod with uint overflow
+    float angleRotationCompensation = 0;//(divisionLo * 360.0f) * (4.0f * pinwheelDivisionsInv) ;
 
     // Instead of doing a full 360 deg rot with params.rotation, 
     // it's multiplied by angleSize so it only moves one "division length", which causes a full rotation of the moire pattern.
