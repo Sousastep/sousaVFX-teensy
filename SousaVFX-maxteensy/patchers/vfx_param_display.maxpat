@@ -9,7 +9,7 @@
             "modernui": 1
         },
         "classnamespace": "box",
-        "rect": [ 59.0, 106.0, 1000.0, 780.0 ],
+        "rect": [ 1129.0, 180.0, 1000.0, 780.0 ],
         "openinpresentation": 1,
         "boxes": [
             {
@@ -69,22 +69,25 @@
             },
             {
                 "box": {
-                    "bgcolor": [ 0.4627450980392157, 0.8509803921568627, 0.8431372549019608, 1.0 ],
-                    "fontface": 1,
+                    "bgcolor": [ 1.0, 1.0, 1.0, 0.8 ],
+                    "fontface": 0,
                     "fontname": "Ableton Sans Medium",
+                    "fontsize": 12.0,
                     "id": "obj-41",
                     "maxclass": "comment",
                     "numinlets": 1,
                     "numoutlets": 0,
-                    "patching_rect": [ 241.0, 135.0, 71.0, 21.0 ],
+                    "patching_rect": [ 241.0, 135.0, 72.0, 21.0 ],
                     "presentation": 1,
-                    "presentation_rect": [ 57.0, 3.5, 123.0, 21.0 ],
+                    "presentation_rect": [ 47.0, 3.0, 124.0, 21.0 ],
                     "text": "#1",
-                    "textcolor": [ 0.043137254901960784, 0.00392156862745098, 0.14901960784313725, 1.0 ]
+                    "textcolor": [ 0.0, 0.0, 0.0, 1.0 ]
                 }
             },
             {
                 "box": {
+                    "bgcolor": [ 1.0, 1.0, 1.0, 0.8 ],
+                    "fontname": "Ableton Sans Medium",
                     "id": "obj-37",
                     "maxclass": "number",
                     "maximum": 253,
@@ -93,9 +96,12 @@
                     "numoutlets": 2,
                     "outlettype": [ "", "bang" ],
                     "parameter_enable": 0,
-                    "patching_rect": [ 111.0, 134.0, 50.0, 22.0 ],
+                    "patching_rect": [ 111.0, 134.0, 53.0, 23.0 ],
                     "presentation": 1,
-                    "presentation_rect": [ 3.0, 3.0, 50.0, 22.0 ]
+                    "presentation_rect": [ 2.0, 2.0, 40.0, 23.0 ],
+                    "textcolor": [ 0.0, 0.0, 0.0, 1.0 ],
+                    "triangle": 0,
+                    "tricolor": [ 0.9764705882352941, 0.996078431372549, 1.0, 1.0 ]
                 }
             },
             {
