@@ -4,12 +4,12 @@
         "appversion": {
             "major": 9,
             "minor": 1,
-            "revision": 2,
+            "revision": 4,
             "architecture": "x64",
             "modernui": 1
         },
         "classnamespace": "box",
-        "rect": [ 452.0, 64.0, 2084.0, 1360.0 ],
+        "rect": [ 774.0, 87.0, 556.0, 633.0 ],
         "bglocked": 1,
         "openinpresentation": 1,
         "toolbarvisible": 0,
@@ -21,6 +21,15 @@
         "enabletransparentbgwithtitlebar": 1,
         "title": "sousavfx",
         "boxes": [
+            {
+                "box": {
+                    "id": "obj-29",
+                    "maxclass": "ezdac~",
+                    "numinlets": 2,
+                    "numoutlets": 0,
+                    "patching_rect": [ 618.0, 834.0, 45.0, 45.0 ]
+                }
+            },
             {
                 "box": {
                     "id": "obj-20",
@@ -995,7 +1004,7 @@
                         "appversion": {
                             "major": 9,
                             "minor": 1,
-                            "revision": 2,
+                            "revision": 4,
                             "architecture": "x64",
                             "modernui": 1
                         },
@@ -1534,7 +1543,7 @@
             },
             {
                 "box": {
-                    "activebgcolor": [ 1.0, 1.0, 1.0, 0.8 ],
+                    "activebgcolor": [ 0.3137254901960784, 0.19215686274509805, 0.19215686274509805, 0.8 ],
                     "activetextcolor": [ 0.85, 0.85, 0.85, 1.0 ],
                     "automation": "1",
                     "automationon": "2",
@@ -1690,7 +1699,7 @@
                     "bgfillcolor_type": "color",
                     "fontname": "Ableton Sans Medium",
                     "id": "obj-41",
-                    "items": [ "debug-console", ",", "MINIRIG4", ",", "Bluetooth-Incoming-Port" ],
+                    "items": [ "debug-console", ",", "MINIRIG4", ",", "Bluetooth-Incoming-Port", ",", "usbmodem40590801" ],
                     "maxclass": "umenu",
                     "numinlets": 1,
                     "numoutlets": 3,
