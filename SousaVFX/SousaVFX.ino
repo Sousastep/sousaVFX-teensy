@@ -44,6 +44,7 @@ struct __attribute__((packed)) VFXParams {
     uint8_t peakPos = 126;
     uint8_t pattern = 0;
     uint8_t gradientOffset = 0;
+    uint8_t maskType = 0;
 } params;
 
 const uint8_t sizeofparams = sizeof(VFXParams);
@@ -74,8 +75,6 @@ int sensorValue = 0;  // value read from the pot
 
 // Detect which device is connected
 enum DeviceType { UNKNOWN, RASPBERRY_PI, MAC_MAX };
-static int frameCount = 0;
-static int frameLengths[10]; // Store recent frame lengths for analysis
 
 void setup()
 {
@@ -128,6 +127,7 @@ const uint8_t paletteCount = ARRAY_SIZE(palettes);
 uint8_t previousPalette = 0;
 CRGBPalette16 currentPalette = palettes[params.currentPaletteIndex];
 
+
 void loop() {
 
   recvWithStartEndMarkers();  // check to see if we have received any new commands
@@ -142,7 +142,6 @@ void loop() {
   }
 
   // Current time
-  unsigned long currentMillis = millis();
   unsigned long currentMicros = micros();
 
   if (newData && currentMicros - previousMicros >= frameInterval) {
@@ -154,7 +153,7 @@ void loop() {
     // Moire patterns emerge with high numbers of divisions
     // inspired by: mojovideotech's pinwheel shader https://editor.isf.video/shaders/5e7a7fe07c113618206de624
     //              & Jason Coon's work https://github.com/jasoncoon/
-    const float paramNorm = 1.0f / 253.0f ;
+    constexpr float paramNorm = 1.0f / 253.0f ;
 
     // divisionLo represents the fractional part of the overall number of pinwheel divisions.
     // It's divided by 254 instead of 253 because divisionLo never needs to reach 1.
@@ -189,26 +188,24 @@ void loop() {
     constexpr float radiiNorm = 1.0f / 255.0f ;
     float radiusCutoff = params.radiusCutoff * paramNorm * 255.0f ;
 
-    // TODO: Use Power Management Functions https://fastled.io/docs/d3/d1d/group___power.html
     float brightnessNorm = params.brightness * paramNorm ;
 
     // Divide curve amount by number of divisions to keep it sane.
     float divisionCurve = (((params.divisionCurve * paramNorm) * 6.0f) - 3.0f) * pinwheelDivisionsInv ;
 
-    // gemini recommends uint16_t wrap instead of fmod 
+    constexpr float oneDeg = 1.0f / 360.0f;
     float divisionsPerCircle = pinwheelDivisions;
-    float phaseMultiplier = (1.0f / 360.0f) * divisionsPerCircle;
+    float phaseMultAngle = oneDeg * divisionsPerCircle;
+    float phaseMultIndex = (1.0f / 200.0f) * divisionsPerCircle;
+    float phaseMultCoord = (1.0f / 800.0f) * divisionsPerCircle;
     uint16_t divisionWidthFixed = divisionWidthNorm * 65535.0f;
     uint16_t peakPosFixed = peakPosNorm * 65535.0f;
-    float rotationNormalized = angleRotationAmt * (1.0f / 360.0f) * divisionsPerCircle;
-    float curveNormalized = divisionCurve * (1.0f / 360.0f) * divisionsPerCircle;
-
-    float slopeIn255 = slopeIn * 255.0f;
-    float slopeOut255 = slopeOut * 255.0f;
+    float rotationNormalized = angleRotationAmt * phaseMultAngle;
+    float curveNormalized = divisionCurve * phaseMultAngle;
 
     // the result should be in the 0.0 - 255.0 range for the dimmermask
     // So multiply the original slope by 255 and divide by 65536
-    const float scaleFactor = 255.0f / 65536.0f;
+    constexpr float scaleFactor = 255.0f / 65536.0f;
     float adjSlopeIn = slopeIn * scaleFactor;
     float adjSlopeOut = slopeOut * scaleFactor;
 
@@ -219,8 +216,22 @@ void loop() {
     float radiusCutoffEnd = radiusCutoff + (radiusFadeLength * 255.0f);
 
     for (int i = 0; i < NUM_LEDS; i++) {
-      
-      float totalPhase = (angleshirez[i] * phaseMultiplier) + rotationNormalized + (radiihirez[i] * curveNormalized);
+      float totalPhase = 0;
+      float radHiRez = radiihirez[i];
+
+      switch (params.maskType) {
+        case 0:
+          totalPhase = (angleshirez[i] * phaseMultAngle);
+          break;
+        case 1:
+          totalPhase = (indexFromCenter[i] * phaseMultIndex);
+          break;
+        case 2:
+          totalPhase = (coordhirez[i] * phaseMultCoord);
+          break;
+      }
+
+      totalPhase += (rotationNormalized + (radHiRez * curveNormalized));
 
       // use int wrap instead of fmod:
       // On ARM, negative floats cast to unsigned types are clipped at 0 instead of wrapped.
@@ -241,10 +252,10 @@ void loop() {
       
       // Calculate fade out above certain radius
       float radiiFade;
-      if (radiihirez[i] >= (radiusCutoffEnd)) {
+      if (radHiRez >= (radiusCutoffEnd)) {
         radiiFade = 0.0f;
-      } else if (radiihirez[i] > radiusCutoff) {
-        radiiFade = (radiusCutoffSlope * ((radiihirez[i] * radiiNorm) - radiusCutoffNorm) + 1.0f);
+      } else if (radHiRez > radiusCutoff) {
+        radiiFade = (radiusCutoffSlope * ((radHiRez * radiiNorm) - radiusCutoffNorm) + 1.0f);
       } else {
         radiiFade = 1.0f;
       }
@@ -252,6 +263,7 @@ void loop() {
       leds[i].nscale8(radiiFade * dimmermask * brightnessNorm);
     }
 
+    // https://fastled.io/docs/d3/d1d/group___power.html
     // https://claude.ai/share/1782f5d0-30c7-4602-b243-702217ad913f
     uint8_t powerBrightness = calculate_max_brightness_for_power_mW(leds, NUM_LEDS, 255, MAX_POWER_MW);
     nscale8(leds, NUM_LEDS, powerBrightness);
