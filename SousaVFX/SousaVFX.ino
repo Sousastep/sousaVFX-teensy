@@ -126,18 +126,18 @@ const uint8_t paletteCount = ARRAY_SIZE(palettes);
 
 uint8_t previousPalette = 0;
 CRGBPalette16 currentPalette = palettes[params.currentPaletteIndex];
-
+CRGBPalette16 targetPalette = currentPalette;
 
 void loop() {
 
-  recvWithStartEndMarkers();  // check to see if we have received any new commands
+  recvWithStartEndMarkers();
   if (newData) {
 
     memcpy(&params, receivedChars, sizeofparams);
     
     if (previousPalette != params.currentPaletteIndex) {
-    currentPalette = palettes[params.currentPaletteIndex];
-    previousPalette = params.currentPaletteIndex;
+      targetPalette = palettes[params.currentPaletteIndex];  // <-- target, not current
+      previousPalette = params.currentPaletteIndex;
     }
   }
 
@@ -146,6 +146,8 @@ void loop() {
 
   if (newData && currentMicros - previousMicros >= frameInterval) {
     previousMicros = currentMicros;
+
+    nblendPaletteTowardPalette(currentPalette, targetPalette, 1);
 
     // Call the current pattern function, updating the 'leds' array
     patterns[params.pattern]();
@@ -325,14 +327,14 @@ void test() {
 void nextPalette() {
   // Store the previous palette index
   uint8_t previousPalette = params.currentPaletteIndex;
-  
+
   // Keep selecting random palettes until we get one different from the previous
   do {
     params.currentPaletteIndex = random8(paletteCount);
   } while (params.currentPaletteIndex == previousPalette);
   
-  // Update the current palette
-  currentPalette = palettes[params.currentPaletteIndex];
+  // Set the target — don't update currentPalette directly
+  targetPalette = palettes[params.currentPaletteIndex];
 }
 
 void nextPattern() {
