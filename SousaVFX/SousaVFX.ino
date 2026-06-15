@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <vector>
 #include <OctoWS2811.h>
 #define USE_OCTOWS2811
 #include <FastLED.h>
@@ -5,32 +7,29 @@ FASTLED_USING_NAMESPACE
 #define LED_TYPE WS2812B
 #define COLOR_ORDER GRB
 #define BRIGHTNESS 0
-
 #include "coordinate_maps.h"
+#include "palettes.h"
 #define MAX_POWER_MW 40000
 #define FRAMES_PER_SECOND 260
-const uint16_t frameInterval = 1000000 / FRAMES_PER_SECOND;
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
+const uint16_t frameInterval = 1000000 / FRAMES_PER_SECOND;
 const int config = WS2811_GRB | WS2811_800kHz; // why's this differ from #define LED_TYPE ?
 const int ledsPerStrip = 26;
 const int numStrips = 8;
 const int numChannels = ledsPerStrip * numStrips * 3;
-const int electretMicEnabled = 0;
-
-char serial_array[numChannels];
-int serial_array_length = 0;
 DMAMEM int displayMemory[ledsPerStrip * 6];
 int drawingMemory[ledsPerStrip * 6];
-boolean newData = false;        // newData is used to determine if there is a new command
-unsigned long previousMillis = 0;  // will store last time mic was updated
+boolean newData = false;
 unsigned long previousMicros = 0;
-unsigned long previousPatternMillis = 0;
-unsigned long previousPaletteMillis = 0;
 
-/* all params range from 0 to 253 due to using 254 and 255 as start and end markers 
- * for incoming serial data via recvWithStartEndMarkers() */
-struct __attribute__((packed)) VFXParams {
+//
+// all params range from 0 to 253 due to using 254 and 255 as start and end markers 
+// for incoming serial data via recvWithStartEndMarkers()
+//
+// https://gist.github.com/embaster/642fed1680bd521baf674614583faaad
+//
+struct VFXParams {
     uint8_t brightness = 80;
     uint8_t radiusCutoff = 253;
     uint8_t currentPaletteIndex = 0;
@@ -50,35 +49,10 @@ struct __attribute__((packed)) VFXParams {
 const uint8_t sizeofparams = sizeof(VFXParams);
 uint8_t receivedChars[sizeofparams];
 uint8_t angleOffsets[NUM_LEDS];
-
 OctoWS2811 octo(ledsPerStrip, displayMemory, drawingMemory, config);
-
-#include <algorithm>
-#include <vector>
-
-// Smoothing parameters
-const float alphaUp = 1;   // Smoothing factor for increasing values
-const float alphaDown = 0.02; // Smoothing factor for decreasing values
-
-float smoothedValue = 0;  // Holds the smoothed output
-
-const int analogInPin = A4;  // Analog input pin that the potentiometer is attached to
-const int numReadings = 80;
-
-int readings[numReadings];  // the readings from the analog input
-int readIndex = 0;          // the index of the current reading
-int total = 0;              // the running total
-int average = 0;            // the average
-int peak = 0;               // the peak
-
-int sensorValue = 0;  // value read from the pot
-
-// Detect which device is connected
-enum DeviceType { UNKNOWN, RASPBERRY_PI, MAC_MAX };
 
 void setup()
 {
-  random16_set_seed(analogRead(A0));
   Serial.begin(115200);
   FastLED.setBrightness(BRIGHTNESS);
   octo.begin();
@@ -113,43 +87,26 @@ SimplePatternList patterns = {
     bpm
 };
 
-const uint8_t patternCount = ARRAY_SIZE(patterns);
-
-uint8_t currentPatternIndex = 0; // Index number of which pattern is current
-
-CRGBPalette16 IceColors_p = CRGBPalette16(CRGB::Black, CRGB::Blue, CRGB::Aqua, CRGB::White);
-
-#include "palettes.h"
-
-// Count of how many cpt-city gradients are defined:
 const uint8_t paletteCount = ARRAY_SIZE(palettes);
-
+const uint8_t patternCount = ARRAY_SIZE(patterns);
+uint8_t currentPatternIndex = 0; // Index number of which pattern is current
 uint8_t previousPalette = 0;
 CRGBPalette16 currentPalette = palettes[params.currentPaletteIndex];
 CRGBPalette16 targetPalette = currentPalette;
 
-void loop() {
-
+void loop() 
+{
   recvWithStartEndMarkers();
-  if (newData) {
-
+  unsigned long currentMicros = micros();
+  if ((newData) && (currentMicros - previousMicros >= frameInterval)) {
+    newData = false;
+    previousMicros = currentMicros;
     memcpy(&params, receivedChars, sizeofparams);
-    
     if (previousPalette != params.currentPaletteIndex) {
-      targetPalette = palettes[params.currentPaletteIndex];  // <-- target, not current
+      targetPalette = palettes[params.currentPaletteIndex];
       previousPalette = params.currentPaletteIndex;
     }
-  }
-
-  // Current time
-  unsigned long currentMicros = micros();
-
-  if (newData && currentMicros - previousMicros >= frameInterval) {
-    previousMicros = currentMicros;
-
-    nblendPaletteTowardPalette(currentPalette, targetPalette, 1);
-
-    // Call the current pattern function, updating the 'leds' array
+    nblendPaletteTowardPalette(currentPalette, targetPalette, 2); // 1 is longest, higher is faster, 6 is ~1 second at 260 fps.
     patterns[params.pattern]();
 
     // Moire patterns emerge with high numbers of divisions
@@ -165,16 +122,9 @@ void loop() {
     float pinwheelDivisionsInv = 1.0f / pinwheelDivisions ;
     float angleSize = 360.0f * pinwheelDivisionsInv ;
 
-    // For some reason, while divisionLo goes from 0 to 1, 
-    // the vfx does a 360 degree rotation with 4 divisions, 
-    // a 180 deg rot with 8 div, or a 90 deg rot with 16 div,
-    // which can be compensated for with the following expression
-    // which can now be commented out after replacing fmod with uint overflow
-    float angleRotationCompensation = 0;//(divisionLo * 360.0f) * (4.0f * pinwheelDivisionsInv) ;
-
     // Instead of doing a full 360 deg rot with params.rotation, 
     // it's multiplied by angleSize so it only moves one "division length", which causes a full rotation of the moire pattern.
-    float angleRotationAmt = (angleSize * (params.rotation * paramNorm)) - angleRotationCompensation ;
+    float angleRotationAmt = (angleSize * (params.rotation * paramNorm)) ;
     
     // The following helps fade each division in and out, triangularly.
     float fadeInNorm = params.fadeIn * paramNorm ;
@@ -195,32 +145,38 @@ void loop() {
     // Divide curve amount by number of divisions to keep it sane.
     float divisionCurve = (((params.divisionCurve * paramNorm) * 6.0f) - 3.0f) * pinwheelDivisionsInv ;
 
-    constexpr float oneDeg = 1.0f / 360.0f;
-    float divisionsPerCircle = pinwheelDivisions;
-    float phaseMultAngle = oneDeg * divisionsPerCircle;
-    float phaseMultIndex = (1.0f / 200.0f) * divisionsPerCircle;
-    float phaseMultCoord = (1.0f / 800.0f) * divisionsPerCircle;
-    uint16_t divisionWidthFixed = divisionWidthNorm * 65535.0f;
-    uint16_t peakPosFixed = peakPosNorm * 65535.0f;
-    float rotationNormalized = angleRotationAmt * phaseMultAngle;
-    float curveNormalized = divisionCurve * phaseMultAngle;
+    constexpr float oneDeg = 1.0f / 360.0f ;
+    float divisionsPerCircle = pinwheelDivisions ;
+    float phaseMultAngle = oneDeg * divisionsPerCircle ;
+    float phaseMultIndex = (1.0f / 200.0f) * divisionsPerCircle ;
+    // float phaseMultCoord = (1.0f / 800.0f) * divisionsPerCircle ;
+    uint16_t divisionWidthFixed = divisionWidthNorm * 65535.0f ;
+    uint16_t peakPosFixed = peakPosNorm * 65535.0f ;
+    float rotationNormalized = angleRotationAmt * phaseMultAngle ;
+    float curveNormalized = divisionCurve * phaseMultAngle ;
 
     // the result should be in the 0.0 - 255.0 range for the dimmermask
     // So multiply the original slope by 255 and divide by 65536
-    constexpr float scaleFactor = 255.0f / 65536.0f;
-    float adjSlopeIn = slopeIn * scaleFactor;
-    float adjSlopeOut = slopeOut * scaleFactor;
+    constexpr float scaleFactor = 255.0f / 65536.0f ;
+    float adjSlopeIn = slopeIn * scaleFactor ;
+    float adjSlopeOut = slopeOut * scaleFactor ;
 
-    bool firstPattern = (params.pattern == 0);
+    bool isFirstPattern = (params.pattern == 0) ;
 
-    float radiusCutoffNorm = params.radiusCutoff * paramNorm;
+    float radiusCutoffNorm = params.radiusCutoff * paramNorm ;
 
-    float radiusCutoffEnd = radiusCutoff + (radiusFadeLength * 255.0f);
+    float radiusCutoffEnd = radiusCutoff + (radiusFadeLength * 255.0f) ;
 
     for (int i = 0; i < NUM_LEDS; i++) {
       float totalPhase = 0;
       float radHiRez = radiihirez[i];
 
+      /*
+      // case 0 is how I originally developed this effect, which has a seam.
+      // case 1 is inspired by Jason Coon, and doesn't have a seam:
+      // https://bsky.app/profile/evilgeniuslabs.org/post/3lufmcvpolk2k
+      // case 2 is experimental.
+      */
       switch (params.maskType) {
         case 0:
           totalPhase = (angleshirez[i] * phaseMultAngle);
@@ -228,9 +184,9 @@ void loop() {
         case 1:
           totalPhase = (indexFromCenter[i] * phaseMultIndex);
           break;
-        case 2:
-          totalPhase = (coordhirez[i] * phaseMultCoord);
-          break;
+        //case 2:
+        //  totalPhase = (coordhirez[i] * phaseMultCoord);
+        //  break;
       }
 
       totalPhase += (rotationNormalized + (radHiRez * curveNormalized));
@@ -240,7 +196,7 @@ void loop() {
       // Bridge Cast allows wrap-around behavior: Float -> Signed Int -> Unsigned Int
       uint16_t normalizedPos16 = static_cast<uint16_t>(static_cast<int32_t>(totalPhase * 65536.0f));
 
-      if (firstPattern) {
+      if (isFirstPattern) {
         // High byte of uint16_t gives a uint8_t value
         angleOffsets[i] = normalizedPos16 >> 8; 
       }
@@ -302,7 +258,6 @@ void recvWithStartEndMarkers()
       }
       else // when rc == endMarker
       {
-        // receivedChars[ndx] = '\0'; // terminate the string
         recvInProgress = false;
         ndx = 0;
         newData = true;
