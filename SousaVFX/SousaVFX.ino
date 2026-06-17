@@ -1,6 +1,6 @@
+#include <OctoWS2811.h>
 #include <algorithm>
 #include <vector>
-#include <OctoWS2811.h>
 #define USE_OCTOWS2811
 #include <FastLED.h>
 FASTLED_USING_NAMESPACE
@@ -14,7 +14,7 @@ FASTLED_USING_NAMESPACE
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
 const uint16_t frameInterval = 1000000 / FRAMES_PER_SECOND;
-const int config = WS2811_GRB | WS2811_800kHz; // why's this differ from #define LED_TYPE ?
+const int config = WS2811_GRB | WS2811_800kHz;  // why's this differ from #define LED_TYPE ?
 const int ledsPerStrip = 26;
 const int numStrips = 8;
 const int numChannels = ledsPerStrip * numStrips * 3;
@@ -22,28 +22,28 @@ DMAMEM int displayMemory[ledsPerStrip * 6];
 int drawingMemory[ledsPerStrip * 6];
 boolean newData = false;
 unsigned long previousMicros = 0;
+uint8_t gradientOffsetInt = 0;
 
 //
-// all params range from 0 to 253 due to using 254 and 255 as start and end markers 
+// all params range from 0 to 253 due to using 254 and 255 as start and end markers
 // for incoming serial data via recvWithStartEndMarkers()
-//
 // https://gist.github.com/embaster/642fed1680bd521baf674614583faaad
 //
 struct VFXParams {
-    uint8_t brightness = 80;
-    uint8_t radiusCutoff = 253;
-    uint8_t currentPaletteIndex = 0;
-    uint8_t divisionHi = 3;
-    uint8_t divisionLo = 0;
-    uint8_t divisionWidth = 126;
-    uint8_t divisionCurve = 126;
-    uint8_t rotation = 0;
-    uint8_t fadeIn = 253;
-    uint8_t fadeOut = 253;
-    uint8_t peakPos = 126;
-    uint8_t pattern = 0;
-    uint8_t gradientOffset = 0;
-    uint8_t maskType = 0;
+  uint8_t brightness = 80;
+  uint8_t radiusCutoff = 253;
+  uint8_t currentPaletteIndex = 0;
+  uint8_t divisionHi = 3;
+  uint8_t divisionLo = 0;
+  uint8_t divisionWidth = 126;
+  uint8_t divisionCurve = 126;
+  uint8_t rotation = 0;
+  uint8_t fadeIn = 253;
+  uint8_t fadeOut = 253;
+  uint8_t peakPos = 126;
+  uint8_t pattern = 0;
+  uint8_t gradientOffset = 0;
+  uint8_t maskType = 0;
 } params;
 
 const uint8_t sizeofparams = sizeof(VFXParams);
@@ -51,8 +51,7 @@ uint8_t receivedChars[sizeofparams];
 uint8_t angleOffsets[NUM_LEDS];
 OctoWS2811 octo(ledsPerStrip, displayMemory, drawingMemory, config);
 
-void setup()
-{
+void setup() {
   Serial.begin(115200);
   FastLED.setBrightness(BRIGHTNESS);
   octo.begin();
@@ -63,39 +62,20 @@ void setup()
 typedef void (*SimplePatternList[])();
 SimplePatternList patterns = {
     // 2D map examples:
-
-    divisionPalette,
-    outwardPalette,
-    inwardPalette,
-    clockwisePalette,
-    counterClockwisePalette,
-    northPalette,
-    northEastPalette,
-    eastPalette,
-    southEastPalette,
-    southPalette,
-    southWestPalette,
-    westPalette,
-    northWestPalette,
-
+    divisionPalette, outwardPalette, inwardPalette, clockwisePalette, counterClockwisePalette, northPalette,
+    northEastPalette, eastPalette, southEastPalette, southPalette, southWestPalette, westPalette, northWestPalette,
     // standard FastLED demo reel examples:
-    rainbow,
-    rainbowWithGlitter,
-    confetti,
-    sinelon,
-    juggle,
-    bpm
-};
+    rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm};
 
+constexpr float paramNorm = 1.0f / 253.0f;
 const uint8_t paletteCount = ARRAY_SIZE(palettes);
 const uint8_t patternCount = ARRAY_SIZE(patterns);
-uint8_t currentPatternIndex = 0; // Index number of which pattern is current
+uint8_t currentPatternIndex = 0;
 uint8_t previousPalette = 0;
 CRGBPalette16 currentPalette = palettes[params.currentPaletteIndex];
 CRGBPalette16 targetPalette = currentPalette;
 
-void loop() 
-{
+void loop() {
   recvWithStartEndMarkers();
   unsigned long currentMicros = micros();
   if ((newData) && (currentMicros - previousMicros >= frameInterval)) {
@@ -106,66 +86,65 @@ void loop()
       targetPalette = palettes[params.currentPaletteIndex];
       previousPalette = params.currentPaletteIndex;
     }
-    nblendPaletteTowardPalette(currentPalette, targetPalette, 2); // 1 is longest, higher is faster, 6 is ~1 second at 260 fps.
+
+    float gradientOffsetNorm = params.gradientOffset * paramNorm;
+    gradientOffsetInt = static_cast<int8_t>(gradientOffsetNorm * 255.0f);
+
+    nblendPaletteTowardPalette(currentPalette, targetPalette, 2);  // 1 is longest, higher is faster, 6 is ~1 second at 260 fps.
     patterns[params.pattern]();
 
     // Moire patterns emerge with high numbers of divisions
     // inspired by: mojovideotech's pinwheel shader https://editor.isf.video/shaders/5e7a7fe07c113618206de624
     //              & Jason Coon's work https://github.com/jasoncoon/
-    constexpr float paramNorm = 1.0f / 253.0f ;
-
     // divisionLo represents the fractional part of the overall number of pinwheel divisions.
     // It's divided by 254 instead of 253 because divisionLo never needs to reach 1.
     // ( all params range from 0 to 253 due to recvWithStartEndMarkers )
-    float divisionLo = (params.divisionLo / 254.0f) ;
-    float pinwheelDivisions = params.divisionHi + divisionLo ;
-    float pinwheelDivisionsInv = 1.0f / pinwheelDivisions ;
-    float angleSize = 360.0f * pinwheelDivisionsInv ;
+    float divisionLo = (params.divisionLo / 254.0f);
+    float pinwheelDivisions = params.divisionHi + divisionLo;
+    float pinwheelDivisionsInv = 1.0f / pinwheelDivisions;
+    float angleSize = 360.0f * pinwheelDivisionsInv;
 
-    // Instead of doing a full 360 deg rot with params.rotation, 
-    // it's multiplied by angleSize so it only moves one "division length", which causes a full rotation of the moire pattern.
-    float angleRotationAmt = (angleSize * (params.rotation * paramNorm)) ;
-    
+    // Instead of doing a full 360 deg rot with params.rotation, it's multiplied by angleSize
+    // so it only moves one "division length", which causes a full rotation of the moire pattern.
+    float angleRotationAmt = (angleSize * (params.rotation * paramNorm));
+
     // The following helps fade each division in and out, triangularly.
-    float fadeInNorm = params.fadeIn * paramNorm ;
-    float fadeOutNorm = params.fadeOut * paramNorm ;
-    float divisionWidthNorm = (params.divisionWidth * paramNorm) ;
-    float peakPosNorm = (params.peakPos * paramNorm) * divisionWidthNorm ;
-    float slopeIn = (fadeInNorm - 1.0f) / (0.0f - peakPosNorm) ;
-    float slopeOut = (1.0f - fadeOutNorm) / (peakPosNorm - divisionWidthNorm) ;
+    float fadeInNorm = params.fadeIn * paramNorm;
+    float fadeOutNorm = params.fadeOut * paramNorm;
+    float divisionWidthNorm = params.divisionWidth * paramNorm;
+    float peakPosNorm = params.peakPos * paramNorm * divisionWidthNorm;
+    float slopeIn = (fadeInNorm - 1.0f) / (0.0f - peakPosNorm);
+    float slopeOut = (1.0f - fadeOutNorm) / (peakPosNorm - divisionWidthNorm);
 
     // Fade edge of radius cutoff.
-    constexpr float radiusFadeLength = 0.08f ;
-    constexpr float radiusCutoffSlope = 1.0f / (0.0f - radiusFadeLength) ;
-    constexpr float radiiNorm = 1.0f / 255.0f ;
-    float radiusCutoff = params.radiusCutoff * paramNorm * 255.0f ;
+    constexpr float radiusFadeLength = 0.08f;  // could be a param
+    constexpr float radiusCutoffSlope = 1.0f / (0.0f - radiusFadeLength);
+    constexpr float radiiNorm = 1.0f / 255.0f;
+    float radiusCutoff = params.radiusCutoff * paramNorm * 255.0f;
 
-    float brightnessNorm = params.brightness * paramNorm ;
+    float brightnessNorm = params.brightness * paramNorm;
 
     // Divide curve amount by number of divisions to keep it sane.
-    float divisionCurve = (((params.divisionCurve * paramNorm) * 6.0f) - 3.0f) * pinwheelDivisionsInv ;
+    float divisionCurve = (((params.divisionCurve * paramNorm) * 6.0f) - 3.0f) * pinwheelDivisionsInv;
 
-    constexpr float oneDeg = 1.0f / 360.0f ;
-    float divisionsPerCircle = pinwheelDivisions ;
-    float phaseMultAngle = oneDeg * divisionsPerCircle ;
-    float phaseMultIndex = (1.0f / 200.0f) * divisionsPerCircle ;
-    // float phaseMultCoord = (1.0f / 800.0f) * divisionsPerCircle ;
-    uint16_t divisionWidthFixed = divisionWidthNorm * 65535.0f ;
-    uint16_t peakPosFixed = peakPosNorm * 65535.0f ;
-    float rotationNormalized = angleRotationAmt * phaseMultAngle ;
-    float curveNormalized = divisionCurve * phaseMultAngle ;
+    constexpr float oneDeg = 1.0f / 360.0f;
+    constexpr float oneIndex = 1.0f / 200.0f;
+    float phaseMultAngle = oneDeg * pinwheelDivisions;
+    float phaseMultIndex = oneIndex * pinwheelDivisions;
+    // float phaseMultCoord = (1.0f / 800.0f) * pinwheelDivisions;
+    uint16_t divisionWidthFixed = divisionWidthNorm * 65535.0f;
+    uint16_t peakPosFixed = peakPosNorm * 65535.0f;
+    float rotationNormalized = angleRotationAmt * phaseMultAngle;  // what happens if these are replaced with phaseMultIndex?
+    float curveNormalized = divisionCurve * phaseMultAngle;
 
     // the result should be in the 0.0 - 255.0 range for the dimmermask
     // So multiply the original slope by 255 and divide by 65536
-    constexpr float scaleFactor = 255.0f / 65536.0f ;
-    float adjSlopeIn = slopeIn * scaleFactor ;
-    float adjSlopeOut = slopeOut * scaleFactor ;
-
-    bool isFirstPattern = (params.pattern == 0) ;
-
-    float radiusCutoffNorm = params.radiusCutoff * paramNorm ;
-
-    float radiusCutoffEnd = radiusCutoff + (radiusFadeLength * 255.0f) ;
+    constexpr float scaleFactor = 255.0f / 65536.0f;
+    float adjSlopeIn = slopeIn * scaleFactor;
+    float adjSlopeOut = slopeOut * scaleFactor;
+    float radiusCutoffNorm = params.radiusCutoff * paramNorm;
+    float radiusCutoffEnd = radiusCutoff + (radiusFadeLength * 255.0f);
+    bool isFirstPattern = (params.pattern == 0);
 
     for (int i = 0; i < NUM_LEDS; i++) {
       float totalPhase = 0;
@@ -184,9 +163,9 @@ void loop()
         case 1:
           totalPhase = (indexFromCenter[i] * phaseMultIndex);
           break;
-        //case 2:
-        //  totalPhase = (coordhirez[i] * phaseMultCoord);
-        //  break;
+        // case 2:
+        //   totalPhase = (coordhirez[i] * phaseMultCoord);
+        //   break;
       }
 
       totalPhase += (rotationNormalized + (radHiRez * curveNormalized));
@@ -198,16 +177,15 @@ void loop()
 
       if (isFirstPattern) {
         // High byte of uint16_t gives a uint8_t value
-        angleOffsets[i] = normalizedPos16 >> 8; 
+        angleOffsets[i] = normalizedPos16 >> 8;
       }
 
       // Calculate pinwheel division's fade ins and outs
       int32_t deltaFixed = static_cast<int32_t>(normalizedPos16) - static_cast<int32_t>(peakPosFixed);
       float currentSlope = (normalizedPos16 < peakPosFixed) ? adjSlopeIn : adjSlopeOut;
       float fade = (deltaFixed * currentSlope) + 255.0f;
-      float gate = (normalizedPos16 < divisionWidthFixed) ? 1.0f : 0.0f;
-      float dimmermask = (fmaxf(0.0f, fade) * gate);
-      
+      float dimmermask = (normalizedPos16 < divisionWidthFixed && fade > 0.0f) ? fade : 0.0f;
+
       // Calculate fade out above certain radius
       float radiiFade;
       if (radHiRez >= (radiusCutoffEnd)) {
@@ -230,47 +208,40 @@ void loop()
     for (int i = 0; i < ledsPerStrip * numStrips; i++) {
       octo.setPixel(i, leds[i].r, leds[i].g, leds[i].b);
     }
-  
+
     // Display once per frame
     octo.show();
-  
   }
 }
 
-void recvWithStartEndMarkers()
-{
+void recvWithStartEndMarkers() {
   static boolean recvInProgress = false;
   static int ndx = 0;
   int startMarker = 254;
   int endMarker = 255;
 
-  if (Serial.available() > 0)
-  {
+  if (Serial.available() > 0) {
     int rc = Serial.read();
-    if (recvInProgress == true)
-    {
-      if (rc != endMarker)
-      {
+    if (recvInProgress == true) {
+      if (rc != endMarker) {
         if (ndx < sizeofparams) {
           receivedChars[ndx] = rc;
           ndx++;
         }
-      }
-      else // when rc == endMarker
+      } else  // when rc == endMarker
       {
         recvInProgress = false;
         ndx = 0;
         newData = true;
       }
-    }
-    else if (rc == startMarker) {
+    } else if (rc == startMarker) {
       recvInProgress = true;
     }
   }
 }
 
 void test() {
-  for (int i = 0; i < ledsPerStrip * numStrips ; i++) {
+  for (int i = 0; i < ledsPerStrip * numStrips; i++) {
     octo.setPixel(i, random(0, 128), random(0, 128), random(0, 128));
     octo.show();
     delay(20);
@@ -287,7 +258,7 @@ void nextPalette() {
   do {
     params.currentPaletteIndex = random8(paletteCount);
   } while (params.currentPaletteIndex == previousPalette);
-  
+
   // Set the target — don't update currentPalette directly
   targetPalette = palettes[params.currentPaletteIndex];
 }
@@ -295,186 +266,143 @@ void nextPalette() {
 void nextPattern() {
   // Store the previous pattern index
   uint8_t previousPattern = currentPatternIndex;
-  
+
   // Keep selecting random patterns until we get one different from the previous
   do {
     currentPatternIndex = random8(patternCount);
   } while (currentPatternIndex == previousPattern);
 }
 
-// TODO: scale params.gradientOffset (it's 0 to 253 rn)
-
-// division-based pattern
-
-void divisionPalette()
-{
-  for (uint16_t i = 0; i < NUM_LEDS; i++)
-  {
-    leds[i] = ColorFromPalette(currentPalette, params.gradientOffset - angleOffsets[i]);
+void divisionPalette() {
+  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt - angleOffsets[i]);
   }
 }
-
 
 // 2D map examples:
 
-void clockwisePalette()
-{
-  for (uint16_t i = 0; i < NUM_LEDS; i++)
-  {
-    leds[i] = ColorFromPalette(currentPalette, params.gradientOffset + angles[i]);
+void clockwisePalette() {
+  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt + angles[i]);
   }
 }
 
-void counterClockwisePalette()
-{
-  for (uint16_t i = 0; i < NUM_LEDS; i++)
-  {
-    leds[i] = ColorFromPalette(currentPalette, params.gradientOffset - angles[i]);
+void counterClockwisePalette() {
+  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt - angles[i]);
   }
 }
 
-void outwardPalette()
-{
-  for (uint16_t i = 0; i < NUM_LEDS; i++)
-  {
-    leds[i] = ColorFromPalette(currentPalette, params.gradientOffset - radii[i]);
+void outwardPalette() {
+  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt - radii[i]);
   }
 }
 
-void inwardPalette()
-{
-  for (uint16_t i = 0; i < NUM_LEDS; i++)
-  {
-    leds[i] = ColorFromPalette(currentPalette, params.gradientOffset + radii[i]);
+void inwardPalette() {
+  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt + radii[i]);
   }
 }
 
-void northPalette()
-{
-  for (uint16_t i = 0; i < NUM_LEDS; i++)
-  {
-    leds[i] = ColorFromPalette(currentPalette, params.gradientOffset - coordsY[i]);
+void northPalette() {
+  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt - coordsY[i]);
   }
 }
 
-void northEastPalette()
-{
-  for (uint16_t i = 0; i < NUM_LEDS; i++)
-  {
-    leds[i] = ColorFromPalette(currentPalette, params.gradientOffset - (coordsX[i] + coordsY[i]));
+void northEastPalette() {
+  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt - (coordsX[i] + coordsY[i]));
   }
 }
 
-void eastPalette()
-{
-  for (uint16_t i = 0; i < NUM_LEDS; i++)
-  {
-    leds[i] = ColorFromPalette(currentPalette, params.gradientOffset - coordsX[i]);
+void eastPalette() {
+  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt - coordsX[i]);
   }
 }
 
-void southEastPalette()
-{
-  for (uint16_t i = 0; i < NUM_LEDS; i++)
-  {
-    leds[i] = ColorFromPalette(currentPalette, params.gradientOffset - coordsX[i] + coordsY[i]);
+void southEastPalette() {
+  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt - coordsX[i] + coordsY[i]);
   }
 }
 
-void southPalette()
-{
-  for (uint16_t i = 0; i < NUM_LEDS; i++)
-  {
-    leds[i] = ColorFromPalette(currentPalette, params.gradientOffset + coordsY[i]);
+void southPalette() {
+  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt + coordsY[i]);
   }
 }
 
-void southWestPalette()
-{
-  for (uint16_t i = 0; i < NUM_LEDS; i++)
-  {
-    leds[i] = ColorFromPalette(currentPalette, params.gradientOffset + coordsX[i] + coordsY[i]);
+void southWestPalette() {
+  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt + coordsX[i] + coordsY[i]);
   }
 }
 
-void westPalette()
-{
-  for (uint16_t i = 0; i < NUM_LEDS; i++)
-  {
-    leds[i] = ColorFromPalette(currentPalette, params.gradientOffset + coordsX[i]);
+void westPalette() {
+  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt + coordsX[i]);
   }
 }
 
-void northWestPalette()
-{
-  for (uint16_t i = 0; i < NUM_LEDS; i++)
-  {
-    leds[i] = ColorFromPalette(currentPalette, params.gradientOffset + coordsX[i] - coordsY[i]);
+void northWestPalette() {
+  for (uint16_t i = 0; i < NUM_LEDS; i++) {
+    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt + coordsX[i] - coordsY[i]);
   }
 }
 
 // standard FastLED demo reel examples:
 
-void rainbow()
-{
+void rainbow() {
   // FastLED's built-in rainbow generator
-  fill_rainbow(leds, NUM_LEDS, params.gradientOffset, 7);
+  fill_rainbow(leds, NUM_LEDS, gradientOffsetInt, 7);
 }
 
-void rainbowWithGlitter()
-{
+void rainbowWithGlitter() {
   // built-in FastLED rainbow, plus some random sparkly glitter
   rainbow();
   addGlitter(80);
 }
 
-void addGlitter(fract8 chanceOfGlitter)
-{
-  if (random8() < chanceOfGlitter)
-  {
+void addGlitter(fract8 chanceOfGlitter) {
+  if (random8() < chanceOfGlitter) {
     leds[random16(NUM_LEDS)] += CRGB::White;
   }
 }
 
-void confetti()
-{
+void confetti() {
   // random colored speckles that blink in and fade smoothly
   fadeToBlackBy(leds, NUM_LEDS, 10);
   int pos = random16(NUM_LEDS);
-  leds[pos] += CHSV(params.gradientOffset + random8(64), 200, 255);
+  leds[pos] += CHSV(gradientOffsetInt + random8(64), 200, 255);
 }
 
-void sinelon()
-{
+void sinelon() {
   // a colored dot sweeping back and forth, with fading trails
   fadeToBlackBy(leds, NUM_LEDS, 20);
   int pos = beatsin16(13, 0, NUM_LEDS - 1);
-  leds[pos] += CHSV(params.gradientOffset, 255, 192);
+  leds[pos] += CHSV(gradientOffsetInt, 255, 192);
 }
 
-void bpm()
-{
+void bpm() {
   // colored stripes pulsing at a defined Beats-Per-Minute (BPM)
   uint8_t BeatsPerMinute = 62;
   CRGBPalette16 palette = PartyColors_p;
   uint8_t beat = beatsin8(BeatsPerMinute, 64, 255);
-  for (int i = 0; i < NUM_LEDS; i++)
-  { // 9948
-    leds[i] = ColorFromPalette(palette, params.gradientOffset + (i * 2), beat - params.gradientOffset + (i * 10));
+  for (int i = 0; i < NUM_LEDS; i++) {  // 9948
+    leds[i] = ColorFromPalette(palette, gradientOffsetInt + (i * 2), beat - gradientOffsetInt + (i * 10));
   }
 }
 
 const byte dotCount = 3;
 const byte hues = 240 / dotCount;
 
-void juggle()
-{
+void juggle() {
   // eight colored dots, weaving in and out of sync with each other
   fadeToBlackBy(leds, NUM_LEDS, 20);
-  for (int i = 0; i < dotCount; i++)
-  {
+  for (int i = 0; i < dotCount; i++) {
     leds[beatsin16(i + 7, 0, NUM_LEDS - 1)] |= CHSV(i * hues, 200, 255);
   }
 }
-
-
