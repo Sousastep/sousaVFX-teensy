@@ -8,13 +8,58 @@
 
 # :studio_microphone: Introduction
 
-The [teensy](https://www.pjrc.com/store/teensy40.html) receives serial data via USB and uses the [octows2811](https://www.pjrc.com/store/octo28_adaptor.html) adapter to send rgb data to the LEDs.
+This repository provides the code that creates the visual effects for Sousastep's LED sousaphone bell.
 
-Serial data can be sent from either a mac running [sousaVFX](https://doc.sousastep.quest/content/sousavfx.html) or SousaVFX-maxteensy.maxproj (in this repo), or a raspberry pi running [sousaFX-rnbo](https://github.com/Sousastep/SousaFX-rnbo).
+It requires [SousaFX-rnbo](https://github.com/Sousastep/SousaFX-rnbo).
 
-The teensy auto-detects whether it's connected to a mac or rpi by measuring the frame size of the incoming serial data.
 
-Each frame's start marker is 254, and end marker is 255. SousaVFX sends hundreds of rgb values in each frame. sousaFX-rnbo sends three parameter values in each frame, and relies on the teensy to generate visuals.
+<a href="#helicopter-overview">![rainbow](./media/rainbow.png)</a>
+
+# :helicopter: Overview
+
+The LEDs receive RGB data from the [Teensy](https://www.pjrc.com/store/teensy40.html) microcontroller via the [OctoWS2811](https://www.pjrc.com/store/octo28_adaptor.html) adapter.
+
+The Teensy runs `SousaVFX.ino` to receive parameter values via USB, which can come from either a Mac running `SousaVFX-maxteensy.maxproj`, or a Raspberry Pi running [SousaFX-rnbo.rnbopat](https://github.com/Sousastep/sousaFX-rpi-scripts). These parameters are processed to calculate the RGB values for each LED.
+
+```cpp
+struct VFXParams {
+  uint8_t brightness;
+  uint8_t radiusCutoff;
+  uint8_t currentPaletteIndex;
+  uint8_t divisionHi;
+  uint8_t divisionLo;
+  uint8_t divisionWidth;
+  uint8_t divisionCurve;
+  uint8_t rotation;
+  uint8_t fadeIn;
+  uint8_t fadeOut;
+  uint8_t peakPos;
+  uint8_t pattern;
+  uint8_t gradientOffset;
+  uint8_t maskType;
+} params;
+```
+
+These parameter values are provided by `SousaVFX.rnbopat`, which handles the presets, envelopes, modulation, and auto-switching logic. This logic is run by data from `SousaFX-rnbo.rnbopat`, which sends the following:
+
+audio:
+- Main Phasor
+- Post-phase-locked-loop phasor
+- Crossfade envelope with no transient helper
+- Main Lowpass Filter Frequency Modulation
+- Dry tuba + time effects envelope
+- Drum + drum loop envelope
+
+midi:
+- Is tuba playing
+- Is tuba soloing
+- Main looper status
+- Drum looper status
+- Is bumper drumming enabled
+- Is looper stutter enabled
+- Drumkit randomization bang
+
+The FPS maxes out around 260.
 
 <a href="#control_knobs-hardware">![rainbow](./media/rainbow.png)</a>
 
