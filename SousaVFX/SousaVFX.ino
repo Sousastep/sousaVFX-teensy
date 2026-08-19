@@ -3,7 +3,9 @@
 #include <vector>
 #define USE_OCTOWS2811
 #include <FastLED.h>
-FASTLED_USING_NAMESPACE
+// FASTLED_USING_NAMESPACE was removed in FastLED 3.10.x: the public API
+// (CRGB, CHSV, FastLED, ColorFromPalette, ...) is now exported into the
+// global namespace directly by the library.
 #define LED_TYPE WS2812B
 #define COLOR_ORDER GRB
 #define BRIGHTNESS 0
@@ -51,8 +53,61 @@ uint8_t receivedChars[sizeofparams];
 uint8_t angleOffsets[NUM_LEDS];
 OctoWS2811 octo(ledsPerStrip, displayMemory, drawingMemory, config);
 
+// 7th-order smoothstep family: 0 at edge0, 1 at edge1, with zero first through
+// third derivatives at both endpoints — much smoother than the plain linear
+// fades used below. See https://en.wikipedia.org/wiki/Smoothstep#7th-order_equation
+float clampFloat(float x, float lowerlimit = 0.0f, float upperlimit = 1.0f) {
+  if (x < lowerlimit) return lowerlimit;
+  if (x > upperlimit) return upperlimit;
+  return x;
+}
+
+// FastLED 3.10.x doesn't re-export lerp8by8() into the global namespace, so
+// provide the same 8-bit lerp locally (scale8 *is* still exported).
+uint8_t lerp8(uint8_t a, uint8_t b, uint8_t frac) {
+  if (b > a) return a + scale8(b - a, frac);
+  return a - scale8(a - b, frac);
+}
+
+// Hot-path variant for the per-LED render loop: smoothstep on a pre-normalized
+// t in 0..1 (clamped internally). Callers pre-scale t with reciprocal multiplies
+// so the loop avoids float division, which is slow on ARM.
+//
+// 7th-order smoothstep (S3 from Wikipedia's Smoothstep article):
+//   S3(x) = -20x^7 + 70x^6 - 84x^5 + 35x^4
+// with zero first, second, and third derivatives at both endpoints. Since all
+// hot paths go through the LUT, this only runs at boot (LUT build) and once per
+// frame (palette blend), so the higher order costs nothing at runtime.
+float smootherstep01(float t) {
+  t = clampFloat(t);
+
+  float t2 = t * t;
+  float t4 = t2 * t2;
+  // -20t^7 + 70t^6 - 84t^5 + 35t^4 = t^4 * (35 - 84t + 70t^2 - 20t^3)
+  float inner = 35.0f - t * (84.0f - t * (70.0f - 20.0f * t));
+  return t4 * inner;
+}
+
+float smootherstep(float edge0, float edge1, float x) {
+  // Scale, and clamp x to 0..1 range
+  return smootherstep01((x - edge0) / (edge1 - edge0));
+}
+
+// Lookup table of smootherstep01 scaled to 0..255. The per-LED render loop
+// (Teensy 3.2 has no FPU — float math is software-emulated) does the easing
+// with one byte lookup + integer lerp instead of a float polynomial.
+uint8_t smootherstepLUT[256];
+
+void buildSmootherstepLUT() {
+  for (int i = 0; i < 256; i++) {
+    float t = i / 255.0f;
+    smootherstepLUT[i] = static_cast<uint8_t>(255.0f * smootherstep01(t) + 0.5f);
+  }
+}
+
 void setup() {
   Serial.begin(115200);
+  buildSmootherstepLUT();
   FastLED.setBrightness(BRIGHTNESS);
   octo.begin();
   test();
@@ -75,6 +130,11 @@ uint8_t previousPalette = 0;
 CRGBPalette16 currentPalette = palettes[params.currentPaletteIndex];
 CRGBPalette16 targetPalette = currentPalette;
 
+// Palette crossfade state — eased with smootherstep over paletteBlendSeconds.
+unsigned long paletteBlendStartMicros = 0;
+float paletteBlendProgress = 0.0f;  // last frame's smoothed progress (0..1)
+constexpr float paletteBlendSeconds = 1.0f;
+
 void loop() {
   recvWithStartEndMarkers();
   unsigned long currentMicros = micros();
@@ -85,12 +145,29 @@ void loop() {
     if (previousPalette != params.currentPaletteIndex) {
       targetPalette = palettes[params.currentPaletteIndex];
       previousPalette = params.currentPaletteIndex;
+      paletteBlendStartMicros = currentMicros;
+      paletteBlendProgress = 0.0f;
     }
 
     float gradientOffsetNorm = params.gradientOffset * paramNorm;
     gradientOffsetInt = static_cast<int8_t>(gradientOffsetNorm * 255.0f);
 
-    nblendPaletteTowardPalette(currentPalette, targetPalette, 2);  // 1 is longest, higher is faster, 6 is ~1 second at 260 fps.
+    // Blend currentPalette toward targetPalette, eased with smootherstep:
+    // each frame moves a fraction of the remaining distance chosen so overall
+    // progress follows a smootherstep curve (slow start, fast middle, slow end).
+    // nblendPaletteTowardPalette moves maxChange/255 of the *remaining* distance,
+    // so the per-frame amount is 255 * deltaProgress / (1 - previousProgress).
+    float paletteBlendT = (currentMicros - paletteBlendStartMicros) / (paletteBlendSeconds * 1000000.0f);
+    float easedProgress = smootherstep01(paletteBlendT);
+    float amountF;
+    if (easedProgress >= 1.0f) {
+      amountF = (paletteBlendProgress < 1.0f) ? 255.0f : 0.0f;  // snap any leftover on the final frame
+    } else {
+      amountF = 255.0f * (easedProgress - paletteBlendProgress) / (1.0f - paletteBlendProgress);
+    }
+    paletteBlendProgress = easedProgress;
+    uint8_t blendAmount = (amountF >= 255.0f) ? 255 : static_cast<uint8_t>(amountF);
+    nblendPaletteTowardPalette(currentPalette, targetPalette, blendAmount);
     patterns[params.pattern]();
 
     // Moire patterns emerge with high numbers of divisions
@@ -108,21 +185,18 @@ void loop() {
     // so it only moves one "division length", which causes a full rotation of the moire pattern.
     float angleRotationAmt = (angleSize * (params.rotation * paramNorm));
 
-    // The following helps fade each division in and out, triangularly.
+    // The following helps fade each division in and out.
     float fadeInNorm = params.fadeIn * paramNorm;
     float fadeOutNorm = params.fadeOut * paramNorm;
     float divisionWidthNorm = params.divisionWidth * paramNorm;
     float peakPosNorm = params.peakPos * paramNorm * divisionWidthNorm;
-    float slopeIn = (fadeInNorm - 1.0f) / (0.0f - peakPosNorm);
-    float slopeOut = (1.0f - fadeOutNorm) / (peakPosNorm - divisionWidthNorm);
 
     // Fade edge of radius cutoff.
     constexpr float radiusFadeLength = 0.08f;  // could be a param
-    constexpr float radiusCutoffSlope = 1.0f / (0.0f - radiusFadeLength);
-    constexpr float radiiNorm = 1.0f / 255.0f;
     float radiusCutoff = params.radiusCutoff * paramNorm * 255.0f;
 
     float brightnessNorm = params.brightness * paramNorm;
+    uint8_t brightness8 = (brightnessNorm >= 1.0f) ? 255 : static_cast<uint8_t>(brightnessNorm * 256.0f);
 
     // Divide curve amount by number of divisions to keep it sane.
     float divisionCurve = (((params.divisionCurve * paramNorm) * 6.0f) - 3.0f) * pinwheelDivisionsInv;
@@ -137,14 +211,19 @@ void loop() {
     float rotationNormalized = angleRotationAmt * phaseMultAngle;  // what happens if these are replaced with phaseMultIndex?
     float curveNormalized = divisionCurve * phaseMultAngle;
 
-    // the result should be in the 0.0 - 255.0 range for the dimmermask
-    // So multiply the original slope by 255 and divide by 65536
-    constexpr float scaleFactor = 255.0f / 65536.0f;
-    float adjSlopeIn = slopeIn * scaleFactor;
-    float adjSlopeOut = slopeOut * scaleFactor;
-    float radiusCutoffNorm = params.radiusCutoff * paramNorm;
     float radiusCutoffEnd = radiusCutoff + (radiusFadeLength * 255.0f);
     bool isFirstPattern = (params.pattern == 0);
+
+    // Pre-scale constants once per frame so the per-LED loop is just one float
+    // multiply (position -> LUT index) followed by pure integer easing math.
+    // The *255 factors fold the 0..255 LUT scale into the reciprocal.
+    float radiusFadeInv255 = 255.0f / (radiusCutoffEnd - radiusCutoff);
+    uint8_t fadeIn8 = static_cast<uint8_t>(fadeInNorm * 255.0f + 0.5f);
+    uint8_t fadeOut8 = static_cast<uint8_t>(fadeOutNorm * 255.0f + 0.5f);
+    float invPeakPos255 = (peakPosFixed > 0) ? (255.0f / static_cast<float>(peakPosFixed)) : 0.0f;
+    float invFadeSpan255 = (divisionWidthFixed > peakPosFixed)
+                               ? (255.0f / (static_cast<float>(divisionWidthFixed) - static_cast<float>(peakPosFixed)))
+                               : 0.0f;
 
     for (int i = 0; i < NUM_LEDS; i++) {
       float totalPhase = 0;
@@ -180,23 +259,38 @@ void loop() {
         angleOffsets[i] = normalizedPos16 >> 8;
       }
 
-      // Calculate pinwheel division's fade ins and outs
-      int32_t deltaFixed = static_cast<int32_t>(normalizedPos16) - static_cast<int32_t>(peakPosFixed);
-      float currentSlope = (normalizedPos16 < peakPosFixed) ? adjSlopeIn : adjSlopeOut;
-      float fade = (deltaFixed * currentSlope) + 255.0f;
-      float dimmermask = (normalizedPos16 < divisionWidthFixed && fade > 0.0f) ? fade : 0.0f;
-
-      // Calculate fade out above certain radius
-      float radiiFade;
-      if (radHiRez >= (radiusCutoffEnd)) {
-        radiiFade = 0.0f;
-      } else if (radHiRez > radiusCutoff) {
-        radiiFade = (radiusCutoffSlope * ((radHiRez * radiiNorm) - radiusCutoffNorm) + 1.0f);
+      // Calculate pinwheel division's fade ins and outs, eased via the LUT.
+      // One float multiply converts the position into a LUT index; the easing
+      // and fade ramp are then pure integer math (no FPU on Teensy 3.2).
+      uint8_t dimmermask;
+      if (normalizedPos16 < divisionWidthFixed) {
+        float idxF;
+        uint8_t fadeLow, fadeHigh;
+        if (normalizedPos16 < peakPosFixed) {
+          // Fade in from fadeIn8 to 255 across [0, peakPos]
+          idxF = static_cast<float>(normalizedPos16) * invPeakPos255;
+          fadeLow = fadeIn8;
+          fadeHigh = 255;
+        } else {
+          // Fade out from 255 to fadeOut8 across [peakPos, divisionWidth]
+          idxF = static_cast<float>(normalizedPos16 - peakPosFixed) * invFadeSpan255;
+          fadeLow = 255;
+          fadeHigh = fadeOut8;
+        }
+        uint8_t idx = (idxF >= 255.0f) ? 255 : static_cast<uint8_t>(idxF);
+        dimmermask = lerp8(fadeLow, fadeHigh, smootherstepLUT[idx]);
       } else {
-        radiiFade = 1.0f;
+        dimmermask = 0;
       }
 
-      leds[i].nscale8(radiiFade * dimmermask * brightnessNorm);
+      // Calculate fade out above certain radius, eased via the LUT, then
+      // combine division fade, radius fade, and brightness into one integer
+      // scale so the LED gets a single nscale8.
+      float radiiIdxF = (radHiRez - radiusCutoff) * radiusFadeInv255;
+      uint8_t radiiIdx = (radiiIdxF >= 255.0f) ? 255 : ((radiiIdxF <= 0.0f) ? 0 : static_cast<uint8_t>(radiiIdxF));
+      uint8_t radiiScale = 255 - smootherstepLUT[radiiIdx];
+
+      leds[i].nscale8(scale8(scale8(dimmermask, brightness8), radiiScale));
     }
 
     // https://fastled.io/docs/d3/d1d/group___power.html
