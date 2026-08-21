@@ -30,9 +30,9 @@ DEFINE_GRADIENT_PALETTE( Blu ) {
 
 DEFINE_GRADIENT_PALETTE( ib_jul01_gp ) {
     0, 194,  1,  1,
-   94,   1, 29, 18,
+   94,   4, 123, 77,
   132,  57,131, 28,
-  255, 113,  1,  1};
+  255, 126,  1,  1};
 
 // Gradient palette "es_vintage_57_gp", originally from
 // http://soliton.vm.bytemark.co.uk/pub/cpt-city/es/vintage/tn/es_vintage_57.png.index.html
@@ -40,11 +40,11 @@ DEFINE_GRADIENT_PALETTE( ib_jul01_gp ) {
 // Size: 20 bytes of program space.
 
 DEFINE_GRADIENT_PALETTE( es_vintage_57_gp ) {
-    0,   2,  1,  1,
-   53,  18,  1,  0,
-  104,  69, 29,  1,
+    0,   85,  43,  43,
+   53,  128,  7,  0,
+  104,  126, 53,  2,
   153, 167,135, 10,
-  255,  46, 56,  4};
+  255,  98, 119,  8};
 
 // Gradient palette "es_vintage_01_gp", originally from
 // http://soliton.vm.bytemark.co.uk/pub/cpt-city/es/vintage/tn/es_vintage_01.png.index.html
@@ -52,14 +52,14 @@ DEFINE_GRADIENT_PALETTE( es_vintage_57_gp ) {
 // Size: 32 bytes of program space.
 
 DEFINE_GRADIENT_PALETTE( es_vintage_01_gp ) {
-    0,   4,  1,  1,
-   51,  16,  0,  1,
-   76,  97,104,  3,
+    0,   102,  25,  25,
+   51,  128,  0,  8,
+   76,  116,124,  4,
   101, 255,131, 19,
-  127,  67,  9,  4,
-  153,  16,  0,  1,
-  229,   4,  1,  1,
-  255,   4,  1,  1};
+  127,  120,  16,  7,
+  153,  128,  0,  8,
+  229,   102,  25,  25,
+  255,   102,  25,  25};
 
 // Gradient palette "es_rivendell_15_gp", originally from
 // http://soliton.vm.bytemark.co.uk/pub/cpt-city/es/rivendell/tn/es_rivendell_15.png.index.html
@@ -67,9 +67,9 @@ DEFINE_GRADIENT_PALETTE( es_vintage_01_gp ) {
 // Size: 20 bytes of program space.
 
 DEFINE_GRADIENT_PALETTE( es_rivendell_15_gp ) {
-    0,   1, 14,  5,
-  101,  16, 36, 14,
-  165,  56, 68, 30,
+    0,   8, 119,  42,
+  101,  41, 92, 36,
+  165,  73, 88, 39,
   242, 150,156, 99,
   255, 150,156, 99};
 
@@ -79,15 +79,15 @@ DEFINE_GRADIENT_PALETTE( es_rivendell_15_gp ) {
 // Size: 36 bytes of program space.
 
 DEFINE_GRADIENT_PALETTE( rgi_15_gp ) {
-    0,   4,  1, 31,
-   31,  55,  1, 16,
+    0,   16,  4, 124,
+   31,  125,  2, 36,
    63, 197,  3,  7,
-   95,  59,  2, 17,
-  127,   6,  2, 34,
-  159,  39,  6, 33,
-  191, 112, 13, 32,
-  223,  56,  9, 35,
-  255,  22,  6, 38};
+   95,  123,  4, 36,
+  127,   21,  7, 120,
+  159,  110,  17, 94,
+  191, 114, 13, 33,
+  223,  110,  18, 69,
+  255,  64,  17, 110};
 
 // Gradient palette "retro2_16_gp", originally from
 // http://soliton.vm.bytemark.co.uk/pub/cpt-city/ma/retro2/tn/retro2_16.png.index.html
@@ -96,7 +96,7 @@ DEFINE_GRADIENT_PALETTE( rgi_15_gp ) {
 
 DEFINE_GRADIENT_PALETTE( retro2_16_gp ) {
     0, 188,135,  1,
-  255,  46,  7,  1};
+  255,  125,  19,  3};
 
 // Gradient palette "Analogous_1_gp", originally from
 // http://soliton.vm.bytemark.co.uk/pub/cpt-city/nd/red/tn/Analogous_1.png.index.html
@@ -144,10 +144,10 @@ DEFINE_GRADIENT_PALETTE( es_pinksplash_07_gp ) {
 DEFINE_GRADIENT_PALETTE( Coral_reef_gp ) {
     0,  40,199,197,
    50,  10,152,155,
-   96,   1,111,120,
+   96,   1,117,126,
    96,  43,127,162,
-  139,  10, 73,111,
-  255,   1, 34, 71};
+  139,  11, 77,117,
+  255,   2, 60, 126};
 
 // Gradient palette "es_ocean_breeze_068_gp", originally from
 // http://soliton.vm.bytemark.co.uk/pub/cpt-city/es/ocean_breeze/tn/es_ocean_breeze_068.png.index.html
@@ -157,10 +157,10 @@ DEFINE_GRADIENT_PALETTE( Coral_reef_gp ) {
 DEFINE_GRADIENT_PALETTE( es_ocean_breeze_068_gp ) {
     0, 100,156,153,
    51,   1, 99,137,
-  101,   1, 68, 84,
+  101,   1, 102, 126,
   104,  35,142,168,
-  178,   0, 63,117,
-  255,   1, 10, 10};
+  178,   0, 69,128,
+  255,   12, 116, 116};
 
 // Gradient palette "es_ocean_breeze_036_gp", originally from
 // http://soliton.vm.bytemark.co.uk/pub/cpt-city/es/ocean_breeze/tn/es_ocean_breeze_036.png.index.html
@@ -168,10 +168,10 @@ DEFINE_GRADIENT_PALETTE( es_ocean_breeze_068_gp ) {
 // Size: 16 bytes of program space.
 
 DEFINE_GRADIENT_PALETTE( es_ocean_breeze_036_gp ) {
-    0,   1,  6,  7,
-   89,   1, 99,111,
+    0,   16,  96,  112,
+   89,   1, 113,126,
   153, 144,209,255,
-  255,   0, 73, 82};
+  255,   0, 114, 128};
 
 // Gradient palette "departure_gp", originally from
 // http://soliton.vm.bytemark.co.uk/pub/cpt-city/mjf/tn/departure.png.index.html
@@ -179,9 +179,9 @@ DEFINE_GRADIENT_PALETTE( es_ocean_breeze_036_gp ) {
 // Size: 88 bytes of program space.
 
 DEFINE_GRADIENT_PALETTE( departure_gp ) {
-    0,   8,  3,  0,
-   42,  23,  7,  0,
-   63,  75, 38,  6,
+    0,   128,  48,  0,
+   42,  128,  39,  0,
+   63,  118, 60,  9,
    84, 169, 99, 38,
   106, 213,169,119,
   116, 255,255,255,
@@ -189,8 +189,8 @@ DEFINE_GRADIENT_PALETTE( departure_gp ) {
   148,  22,255, 24,
   170,   0,255,  0,
   191,   0,136,  0,
-  212,   0, 55,  0,
-  255,   0, 55,  0};
+  212,   0, 128,  0,
+  255,   0, 128,  0};
 
 // Gradient palette "es_landscape_64_gp", originally from
 // http://soliton.vm.bytemark.co.uk/pub/cpt-city/es/landscape/tn/es_landscape_64.png.index.html
@@ -198,9 +198,9 @@ DEFINE_GRADIENT_PALETTE( departure_gp ) {
 // Size: 36 bytes of program space.
 
 DEFINE_GRADIENT_PALETTE( es_landscape_64_gp ) {
-    0,   0,  0,  0,
-   37,   2, 25,  1,
-   76,  15,115,  5,
+    0,   64,  64,  64,
+   37,   10, 123,  5,
+   76,  16,122,  5,
   127,  79,213,  1,
   128, 126,211, 47,
   130, 188,209,247,
@@ -214,12 +214,12 @@ DEFINE_GRADIENT_PALETTE( es_landscape_64_gp ) {
 // Size: 24 bytes of program space.
 
 DEFINE_GRADIENT_PALETTE( es_landscape_33_gp ) {
-    0,   1,  5,  0,
-   19,  32, 23,  1,
+    0,   25,  128,  0,
+   19,  124, 89,  4,
    38, 161, 55,  1,
    63, 229,144,  1,
    66,  39,142, 74,
-  255,   1,  4,  1};
+  255,   25,  102,  25};
 
 // Gradient palette "rainbowsherbet_gp", originally from
 // http://soliton.vm.bytemark.co.uk/pub/cpt-city/ma/icecream/tn/rainbowsherbet.png.index.html
@@ -245,8 +245,8 @@ DEFINE_GRADIENT_PALETTE( gr65_hult_gp ) {
    48, 255,136,255,
    89, 220, 29,226,
   160,   7, 82,178,
-  216,   1,124,109,
-  255,   1,124,109};
+  216,   1,126,111,
+  255,   1,126,111};
 
 // Gradient palette "gr64_hult_gp", originally from
 // http://soliton.vm.bytemark.co.uk/pub/cpt-city/hult/tn/gr64_hult.png.index.html
@@ -254,14 +254,14 @@ DEFINE_GRADIENT_PALETTE( gr65_hult_gp ) {
 // Size: 32 bytes of program space.
 
 DEFINE_GRADIENT_PALETTE( gr64_hult_gp ) {
-    0,   1,124,109,
-   66,   1, 93, 79,
-  104,  52, 65,  1,
+    0,   1,126,111,
+   66,   1, 126, 107,
+  104,  100, 126,  2,
   130, 115,127,  1,
-  150,  52, 65,  1,
-  201,   1, 86, 72,
-  239,   0, 55, 45,
-  255,   0, 55, 45};
+  150,  100, 126,  2,
+  201,   1, 126, 106,
+  239,   0, 128, 104,
+  255,   0, 128, 104};
 
 // Gradient palette "GMT_drywet_gp", originally from
 // http://soliton.vm.bytemark.co.uk/pub/cpt-city/gmt/tn/GMT_drywet.png.index.html
@@ -269,13 +269,13 @@ DEFINE_GRADIENT_PALETTE( gr64_hult_gp ) {
 // Size: 28 bytes of program space.
 
 DEFINE_GRADIENT_PALETTE( GMT_drywet_gp ) {
-    0,  47, 30,  2,
+    0,  122, 78,  5,
    42, 213,147, 24,
    84, 103,219, 52,
   127,   3,219,207,
   170,   1, 48,214,
-  212,   1,  1,111,
-  255,   1,  7, 33};
+  212,   1,  1,126,
+  255,   4,  26, 124};
 
 // Gradient palette "ib15_gp", originally from
 // http://soliton.vm.bytemark.co.uk/pub/cpt-city/ing/general/tn/ib15.png.index.html
@@ -288,7 +288,7 @@ DEFINE_GRADIENT_PALETTE( ib15_gp ) {
    89, 208, 85, 33,
   107, 255, 29, 11,
   141, 137, 31, 39,
-  255,  59, 33, 89};
+  255,  62, 34, 93};
 
 // Gradient palette "Fuschia_7_gp", originally from
 // http://soliton.vm.bytemark.co.uk/pub/cpt-city/ds/fuschia/tn/Fuschia-7.png.index.html
@@ -297,7 +297,7 @@ DEFINE_GRADIENT_PALETTE( ib15_gp ) {
 
 DEFINE_GRADIENT_PALETTE( Fuschia_7_gp ) {
     0,  43,  3,153,
-   63, 100,  4,103,
+   63, 119,  5,123,
   127, 188,  5, 66,
   191, 161, 11,115,
   255, 135, 20,182};
@@ -310,8 +310,8 @@ DEFINE_GRADIENT_PALETTE( Fuschia_7_gp ) {
 DEFINE_GRADIENT_PALETTE( es_emerald_dragon_08_gp ) {
     0,  97,255,  1,
   101,  47,133,  1,
-  178,  13, 43,  1,
-  255,   2, 10,  1};
+  178,  38, 125,  3,
+  255,   23, 116,  12};
 
 // Gradient palette "lava_gp", originally from
 // http://soliton.vm.bytemark.co.uk/pub/cpt-city/neota/elem/tn/lava.png.index.html
@@ -319,9 +319,9 @@ DEFINE_GRADIENT_PALETTE( es_emerald_dragon_08_gp ) {
 // Size: 52 bytes of program space.
 
 DEFINE_GRADIENT_PALETTE( lava_gp ) {
-    0,   0,  0,  0,
-   46,  18,  0,  0,
-   96, 113,  0,  0,
+    0,   64,  64,  64,
+   46,  128,  0,  0,
+   96,  138,  0,  0,
   108, 142,  3,  1,
   119, 175, 17,  1,
   146, 213, 44,  2,
@@ -339,8 +339,8 @@ DEFINE_GRADIENT_PALETTE( lava_gp ) {
 // Size: 28 bytes of program space.
 
 DEFINE_GRADIENT_PALETTE( fire_gp ) {
-    0,   1,  1,  0,
-   76,  32,  5,  0,
+    0,   127,  128,  0,
+   76,  128,  20,  0,
   146, 192, 24,  0,
   197, 220,105,  5,
   240, 252,255, 31,
@@ -353,7 +353,7 @@ DEFINE_GRADIENT_PALETTE( fire_gp ) {
 // Size: 44 bytes of program space.
 
 DEFINE_GRADIENT_PALETTE( Colorfull_gp ) {
-    0,  10, 85,  5,
+    0,  14, 120,  7,
    25,  29,109, 18,
    60,  59,138, 42,
    93,  83, 99, 52,
@@ -371,13 +371,13 @@ DEFINE_GRADIENT_PALETTE( Colorfull_gp ) {
 // Size: 28 bytes of program space.
 
 DEFINE_GRADIENT_PALETTE( Magenta_Evening_gp ) {
-    0,  71, 27, 39,
+    0,  92, 35, 51,
    31, 130, 11, 51,
    63, 213,  2, 64,
    70, 232,  1, 66,
    76, 252,  1, 69,
-  108, 123,  2, 51,
-  255,  46,  9, 35};
+  108, 125,  2, 52,
+  255,  107,  21, 81};
 
 // Gradient palette "Pink_Purple_gp", originally from
 // http://soliton.vm.bytemark.co.uk/pub/cpt-city/nd/atmospheric/tn/Pink_Purple.png.index.html
@@ -385,9 +385,9 @@ DEFINE_GRADIENT_PALETTE( Magenta_Evening_gp ) {
 // Size: 44 bytes of program space.
 
 DEFINE_GRADIENT_PALETTE( Pink_Purple_gp ) {
-    0,  19,  2, 39,
-   25,  26,  4, 45,
-   51,  33,  6, 52,
+    0,  59,  6, 121,
+   25,  68,  10, 117,
+   51,  73,  13, 114,
    76,  68, 62,125,
   102, 118,187,240,
   109, 163,215,247,
@@ -403,11 +403,11 @@ DEFINE_GRADIENT_PALETTE( Pink_Purple_gp ) {
 // Size: 28 bytes of program space.
 
 DEFINE_GRADIENT_PALETTE( Sunset_Real_gp ) {
-    0, 120,  0,  0,
+    0, 128,  0,  0,
    22, 179, 22,  0,
    51, 255,104,  0,
    85, 167, 22, 18,
-  135, 100,  0,103,
+  135, 124,  0,128,
   198,  16,  0,130,
   255,   0,  0,160};
 
@@ -417,19 +417,19 @@ DEFINE_GRADIENT_PALETTE( Sunset_Real_gp ) {
 // Size: 52 bytes of program space.
 
 DEFINE_GRADIENT_PALETTE( es_autumn_19_gp ) {
-    0,  26,  1,  1,
-   51,  67,  4,  1,
-   84, 118, 14,  1,
+    0,  123,  5,  5,
+   51,  126,  7,  2,
+   84, 126, 15,  1,
   104, 137,152, 52,
-  112, 113, 65,  1,
+  112, 126, 73,  1,
   122, 133,149, 59,
   124, 137,152, 52,
-  135, 113, 65,  1,
+  135, 126, 73,  1,
   142, 139,154, 46,
-  163, 113, 13,  1,
-  204,  55,  3,  1,
-  249,  17,  1,  1,
-  255,  17,  1,  1};
+  163, 126, 15,  1,
+  204,  125,  7,  2,
+  249,  120,  7,  7,
+  255,  120,  7,  7};
 
 // Gradient palette "BlacK_Blue_Magenta_White_gp", originally from
 // http://soliton.vm.bytemark.co.uk/pub/cpt-city/nd/basic/tn/BlacK_Blue_Magenta_White.png.index.html
@@ -437,8 +437,8 @@ DEFINE_GRADIENT_PALETTE( es_autumn_19_gp ) {
 // Size: 28 bytes of program space.
 
 DEFINE_GRADIENT_PALETTE( BlacK_Blue_Magenta_White_gp ) {
-    0,   0,  0,  0,
-   42,   0,  0, 45,
+    0,   64,  64,  64,
+   42,   0,  0, 128,
    84,   0,  0,255,
   127,  42,  0,255,
   170, 255,  0,255,
@@ -451,8 +451,8 @@ DEFINE_GRADIENT_PALETTE( BlacK_Blue_Magenta_White_gp ) {
 // Size: 20 bytes of program space.
 
 DEFINE_GRADIENT_PALETTE( BlacK_Magenta_Red_gp ) {
-    0,   0,  0,  0,
-   63,  42,  0, 45,
+    0,   64,  64,  64,
+   63,  119,  0, 128,
   127, 255,  0,255,
   191, 255,  0, 45,
   255, 255,  0,  0};
@@ -463,8 +463,8 @@ DEFINE_GRADIENT_PALETTE( BlacK_Magenta_Red_gp ) {
 // Size: 28 bytes of program space.
 
 DEFINE_GRADIENT_PALETTE( BlacK_Red_Magenta_Yellow_gp ) {
-    0,   0,  0,  0,
-   42,  42,  0,  0,
+    0,   64,  64,  64,
+   42,  128,  0,  0,
    84, 255,  0,  0,
   127, 255,  0, 45,
   170, 255,  0,255,
@@ -482,6 +482,89 @@ DEFINE_GRADIENT_PALETTE( Blue_Cyan_Yellow_gp ) {
   127,   0,255,255,
   191,  42,255, 45,
   255, 255,255,  0};
+
+// ---- Custom palettes for the sousaphone bell ----
+// All entries are kept at or above HSL lightness 0.25 so the bell never
+// shows dark spots, while each palette keeps its own distinct character.
+
+// Gradient palette "GoldRush_gp": champagne gold to warm white, like polished brass.
+DEFINE_GRADIENT_PALETTE( GoldRush_gp ) {
+    0, 255, 185,  30,
+   80, 255, 215,  95,
+  160, 255, 235, 160,
+  255, 255, 245, 210};
+
+// Gradient palette "CottonCandy_gp": pastel pink to mauve to periwinkle.
+DEFINE_GRADIENT_PALETTE( CottonCandy_gp ) {
+    0, 255, 170, 205,
+  127, 225, 165, 235,
+  255, 185, 170, 255};
+
+// Gradient palette "NeonSynth_gp": electric purple, hot pink, cyan - 80s synthwave.
+DEFINE_GRADIENT_PALETTE( NeonSynth_gp ) {
+    0, 150,   0, 255,
+  127, 255,   0, 200,
+  255,   0, 255, 255};
+
+// Gradient palette "SeaGlass_gp": mint to seafoam to white.
+DEFINE_GRADIENT_PALETTE( SeaGlass_gp ) {
+    0, 100, 255, 180,
+  127, 100, 225, 215,
+  255, 235, 255, 250};
+
+// Gradient palette "RainbowBright_gp": full-spectrum vivid rainbow that loops seamlessly.
+DEFINE_GRADIENT_PALETTE( RainbowBright_gp ) {
+    0, 255,   0,   0,
+   36, 255, 120,   0,
+   72, 255, 255,   0,
+  109,   0, 255,   0,
+  145,   0, 255, 255,
+  182,   0, 120, 255,
+  218, 180,   0, 255,
+  255, 255,   0,   0};
+
+// Gradient palette "Aurora_gp": northern lights - green to teal to blue to violet.
+DEFINE_GRADIENT_PALETTE( Aurora_gp ) {
+    0,  90, 255, 150,
+   85,   0, 255, 210,
+  170,  70, 140, 255,
+  255, 170,  90, 255};
+
+// Gradient palette "Lagoon_gp": sandy beach to turquoise to deep sky blue.
+DEFINE_GRADIENT_PALETTE( Lagoon_gp ) {
+    0, 235, 210, 150,
+  127,  30, 190, 180,
+  255,  40,  90, 220};
+
+// Gradient palette "Glacier_gp": icy cyan to azure with a hint of white.
+DEFINE_GRADIENT_PALETTE( Glacier_gp ) {
+    0,   0, 225, 255,
+  127,  70, 150, 255,
+  255, 190, 225, 255};
+
+// Gradient palette "CherryLime_gp": bold cherry red to electric lime.
+DEFINE_GRADIENT_PALETTE( CherryLime_gp ) {
+    0, 220,  30,  50,
+  255, 185, 255,  20};
+
+// Gradient palette "MangoPunch_gp": pink to coral to mango orange.
+DEFINE_GRADIENT_PALETTE( MangoPunch_gp ) {
+    0, 255,  60, 140,
+  127, 255, 140,  80,
+  255, 255, 200,  50};
+
+// Gradient palette "Pearl_gp": cool silver-white shimmer like polished metal.
+DEFINE_GRADIENT_PALETTE( Pearl_gp ) {
+    0, 200, 205, 218,
+   85, 240, 242, 248,
+  170, 208, 214, 226,
+  255, 200, 205, 218};
+
+// Gradient palette "Patriot_gp": red to white to blue.
+DEFINE_GRADIENT_PALETTE( Patriot_gp ) {
+    0, 228,  28,  42,
+  127, 255, 255, 255,
+  255,  32,  60, 232};
 
 
 // Single array of defined cpt-city color palettes.
@@ -528,4 +611,16 @@ const CRGBPalette16 palettes[] = {
   Magenta_Evening_gp,
   Pink_Purple_gp,
   es_autumn_19_gp,
-  Blue_Cyan_Yellow_gp };
+  Blue_Cyan_Yellow_gp,
+  GoldRush_gp,
+  CottonCandy_gp,
+  NeonSynth_gp,
+  SeaGlass_gp,
+  RainbowBright_gp,
+  Aurora_gp,
+  Lagoon_gp,
+  Glacier_gp,
+  CherryLime_gp,
+  MangoPunch_gp,
+  Pearl_gp,
+  Patriot_gp };
