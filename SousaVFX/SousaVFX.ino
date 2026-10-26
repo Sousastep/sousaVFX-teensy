@@ -224,7 +224,7 @@ void loop() {
 
     for (int i = 0; i < NUM_LEDS; i++) {
       float totalPhase = 0;
-      float radHiRez = radiihirez[i];
+      float radHiRez = radiihirez[swapindex[i]];
 
       /*
       // case 0 is how I originally developed this effect, which has a seam.
@@ -234,13 +234,13 @@ void loop() {
       */
       switch (params.maskType) {
         case 0:
-          totalPhase = (angleshirez[i] * phaseMultAngle);
+          totalPhase = (angleshirez[swapindex[i]] * phaseMultAngle);
           break;
         case 1:
-          totalPhase = (indexFromCenter[i] * phaseMultIndex);
+          totalPhase = (swapindex[i] * phaseMultIndex);
           break;
         // case 2:
-        //   totalPhase = (coordhirez[i] * phaseMultCoord);
+        //   totalPhase = (coordhirez[swapindex[i]] * phaseMultCoord);
         //   break;
       }
 
@@ -374,73 +374,73 @@ void divisionPalette() {
 
 void clockwisePalette() {
   for (uint16_t i = 0; i < NUM_LEDS; i++) {
-    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt + angles[i]);
+    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt + angles[swapindex[i]]);
   }
 }
 
 void counterClockwisePalette() {
   for (uint16_t i = 0; i < NUM_LEDS; i++) {
-    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt - angles[i]);
+    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt - angles[swapindex[i]]);
   }
 }
 
 void outwardPalette() {
   for (uint16_t i = 0; i < NUM_LEDS; i++) {
-    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt - radii[i]);
+    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt - radii[swapindex[i]]);
   }
 }
 
 void inwardPalette() {
   for (uint16_t i = 0; i < NUM_LEDS; i++) {
-    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt + radii[i]);
+    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt + radii[swapindex[i]]);
   }
 }
 
 void northPalette() {
   for (uint16_t i = 0; i < NUM_LEDS; i++) {
-    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt - coordsY[i]);
+    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt - coordsY[swapindex[i]]);
   }
 }
 
 void northEastPalette() {
   for (uint16_t i = 0; i < NUM_LEDS; i++) {
-    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt - (coordsX[i] + coordsY[i]));
+    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt - (coordsX[swapindex[i]] + coordsY[swapindex[i]]));
   }
 }
 
 void eastPalette() {
   for (uint16_t i = 0; i < NUM_LEDS; i++) {
-    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt - coordsX[i]);
+    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt - coordsX[swapindex[i]]);
   }
 }
 
 void southEastPalette() {
   for (uint16_t i = 0; i < NUM_LEDS; i++) {
-    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt - coordsX[i] + coordsY[i]);
+    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt - coordsX[swapindex[i]] + coordsY[swapindex[i]]);
   }
 }
 
 void southPalette() {
   for (uint16_t i = 0; i < NUM_LEDS; i++) {
-    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt + coordsY[i]);
+    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt + coordsY[swapindex[i]]);
   }
 }
 
 void southWestPalette() {
   for (uint16_t i = 0; i < NUM_LEDS; i++) {
-    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt + coordsX[i] + coordsY[i]);
+    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt + coordsX[swapindex[i]] + coordsY[swapindex[i]]);
   }
 }
 
 void westPalette() {
   for (uint16_t i = 0; i < NUM_LEDS; i++) {
-    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt + coordsX[i]);
+    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt + coordsX[swapindex[i]]);
   }
 }
 
 void northWestPalette() {
   for (uint16_t i = 0; i < NUM_LEDS; i++) {
-    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt + coordsX[i] - coordsY[i]);
+    leds[i] = ColorFromPalette(currentPalette, gradientOffsetInt + coordsX[swapindex[i]] - coordsY[swapindex[i]]);
   }
 }
 
