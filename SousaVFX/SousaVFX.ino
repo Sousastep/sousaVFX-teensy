@@ -105,6 +105,7 @@ void buildSmootherstepLUT() {
 void setup() {
   Serial.begin(115200);
   buildSmootherstepLUT();
+  buildCoordinateMaps();
   FastLED.setBrightness(BRIGHTNESS);
   octo.begin();
   test();
