@@ -47,10 +47,13 @@ float angleshirez[NUM_FIB_POINTS];
 float radiihirez[NUM_FIB_POINTS];
 
 void buildCoordinateMaps() {
-  // the golden ratio
+
+  // --- the golden ratio ---
   const float phi = (1.0f + sqrtf(5.0f)) / 2.0f;
+
   // the golden angle splits a full turn in the golden ratio, ~137.508 degrees
   const float goldenAngleDeg = 360.0f * (1.0f - 1.0f / phi);
+
   const float maxRootN = sqrtf(NUM_FIB_POINTS - 1);
   for (int n = 0; n < NUM_FIB_POINTS; n++) {
     float rootN = sqrtf(n);

@@ -5,16 +5,18 @@ void applyPinwheelMask() {
   // inspired by: mojovideotech's pinwheel shader https://editor.isf.video/shaders/5e7a7fe07c113618206de624
   //              & Jason Coon's work https://github.com/jasoncoon/
   // divisionLo represents the fractional part of the overall number of pinwheel divisions.
-  // It's divided by 254 instead of 253 because divisionLo never needs to reach 1.
-  // ( all params range from 0 to 253 due to recvWithStartEndMarkers )
-  float divisionLo = (params.divisionLo / 254.0f);
-  float pinwheelDivisions = params.divisionHi + divisionLo;
+  // It's divided by 256 instead of 255 because divisionLo never needs to reach 1.
+  float divisionLo = (params.divisionLo / 256.0f);
+  // With divisionHi and divisionLo both 0 there would be no divisions and the reciprocals
+  // below would be infinite, so hold it at the smallest nonzero step.
+  float pinwheelDivisions = max(params.divisionHi + divisionLo, 1.0f / 256.0f);
   float pinwheelDivisionsInv = 1.0f / pinwheelDivisions;
   float angleSize = 360.0f * pinwheelDivisionsInv;
 
   // Instead of doing a full 360 deg rot with params.rotation, it's multiplied by angleSize
   // so it only moves one "division length", which causes a full rotation of the moire pattern.
-  float angleRotationAmt = (angleSize * (params.rotation * paramNorm));
+  // It's divided by 256 instead of 255 because 256 would equal 0, so a 0..255 ramp wraps seamlessly.
+  float angleRotationAmt = (angleSize * (params.rotation / 256.0f));
 
   // The following helps fade each division in and out.
   float fadeInNorm = params.fadeIn * paramNorm;
@@ -24,7 +26,7 @@ void applyPinwheelMask() {
 
   // Fade edge of radius cutoff.
   constexpr float radiusFadeLength = 0.08f;  // could be a param
-  float radiusCutoff = params.radiusCutoff * paramNorm * 255.0f;
+  float radiusCutoff = params.radiusCutoff;
 
   float brightnessNorm = params.brightness * paramNorm;
   uint8_t brightness8 = (brightnessNorm >= 1.0f) ? 255 : static_cast<uint8_t>(brightnessNorm * 256.0f);

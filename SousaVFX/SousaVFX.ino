@@ -33,16 +33,18 @@ void setup() {
 }
 
 void loop() {
-  recvWithStartEndMarkers();
+  recvCOBSFrames();
   unsigned long currentMicros = micros();
   if ((newData) && (currentMicros - previousMicros >= frameInterval)) {
     newData = false;
     previousMicros = currentMicros;
     memcpy(&params, receivedChars, sizeofparams);
+    // Wrap indexes into range so a bad value from the sender can't read past the end of these arrays.
+    params.pattern %= patternCount;
+    params.currentPaletteIndex %= paletteCount;
     updatePaletteBlend(currentMicros);
 
-    float gradientOffsetNorm = params.gradientOffset * paramNorm;
-    gradientOffsetInt = static_cast<int8_t>(gradientOffsetNorm * 255.0f);
+    gradientOffsetInt = params.gradientOffset;
 
     patterns[params.pattern]();
     applyPinwheelMask();
