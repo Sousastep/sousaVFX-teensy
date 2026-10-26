@@ -53,9 +53,6 @@ uint8_t receivedChars[sizeofparams];
 uint8_t angleOffsets[NUM_LEDS];
 OctoWS2811 octo(ledsPerStrip, displayMemory, drawingMemory, config);
 
-// 7th-order smoothstep family: 0 at edge0, 1 at edge1, with zero first through
-// third derivatives at both endpoints — much smoother than the plain linear
-// fades used below. See https://en.wikipedia.org/wiki/Smoothstep#7th-order_equation
 float clampFloat(float x, float lowerlimit = 0.0f, float upperlimit = 1.0f) {
   if (x < lowerlimit) return lowerlimit;
   if (x > upperlimit) return upperlimit;
@@ -73,7 +70,7 @@ uint8_t lerp8(uint8_t a, uint8_t b, uint8_t frac) {
 // t in 0..1 (clamped internally). Callers pre-scale t with reciprocal multiplies
 // so the loop avoids float division, which is slow on ARM.
 //
-// 7th-order smoothstep (S3 from Wikipedia's Smoothstep article):
+// 7th-order smoothstep https://en.wikipedia.org/wiki/Smoothstep#7th-order_equation
 //   S3(x) = -20x^7 + 70x^6 - 84x^5 + 35x^4
 // with zero first, second, and third derivatives at both endpoints. Since all
 // hot paths go through the LUT, this only runs at boot (LUT build) and once per
