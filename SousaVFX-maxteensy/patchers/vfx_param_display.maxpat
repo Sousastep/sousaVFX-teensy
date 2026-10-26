@@ -3,8 +3,8 @@
         "fileversion": 1,
         "appversion": {
             "major": 9,
-            "minor": 1,
-            "revision": 2,
+            "minor": 2,
+            "revision": 0,
             "architecture": "x64",
             "modernui": 1
         },
@@ -90,7 +90,7 @@
                     "fontname": "Ableton Sans Medium",
                     "id": "obj-37",
                     "maxclass": "number",
-                    "maximum": 253,
+                    "maximum": 255,
                     "minimum": 0,
                     "numinlets": 1,
                     "numoutlets": 2,
